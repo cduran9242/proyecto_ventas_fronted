@@ -1,9 +1,9 @@
 import { Routes } from '@angular/router';
 import { Inicio } from './components/inicio/inicio';
-import { Header } from './components/header/header';
+import { HeaderComponent } from './components/header/header';
 import { Nav } from './components/nav/nav';
-import { Footer } from './components/footer/footer';
-import { Index } from './page/index';
+import { FooterComponent } from './components/footer/footer';
+import { IndexComponent } from './page/index';
 import { Usuario } from './page/usuario/usuario';
 import { Ventas } from './page/ventas/ventas';
 import { Reportes } from './page/reportes/reportes';
@@ -12,7 +12,7 @@ import { Notfound } from './page/notfound/notfound';
 
 
 export const routes: Routes = [
-    {path: '', component:Index},
+    {path: '', component:IndexComponent},
     {path: 'ventas', component:Ventas},
     {path: 'usuario', component:Usuario},
     {path: 'reportes', component:Reportes},
