@@ -264,26 +264,46 @@
 /* Responsive */
 @media (max-width: 768px) {
   .ventas-container {
-    padding: 15px;
+    padding: 10px;
+    margin: 0;
+  }
+  
+  .ventas-header {
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .ventas-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .nueva-venta-section,
+  .ventas-lista-section {
+    padding: 20px;
+    margin-bottom: 15px;
   }
   
   .form-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
   
   .resumen-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
   
   .form-actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    gap: 10px;
   }
   
   .btn-crear,
   .btn-limpiar {
     width: 100%;
-    max-width: 200px;
+    padding: 15px;
+    font-size: 16px;
   }
   
   .tabla-ventas {
@@ -292,21 +312,46 @@
   
   .tabla-ventas th,
   .tabla-ventas td {
-    padding: 8px 6px;
+    padding: 8px 4px;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 15px;
+    font-size: 16px;
   }
 }
 
 @media (max-width: 480px) {
+  .ventas-container {
+    padding: 5px;
+  }
+  
+  .ventas-header {
+    padding: 15px;
+  }
+  
   .ventas-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
   
   .nueva-venta-section,
   .ventas-lista-section {
-    padding: 20px;
+    padding: 15px;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 12px;
+    font-size: 16px;
   }
   
   .tabla-container {
     font-size: 11px;
+  }
+  
+  .tabla-ventas th,
+  .tabla-ventas td {
+    padding: 6px 2px;
   }
 }

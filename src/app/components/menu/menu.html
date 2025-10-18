@@ -1,10 +1,18 @@
 <nav class="menu">
+  <!-- Título del menú (visible en móviles) -->
+  <div class="menu-title">
+    <span class="menu-title-text">Menú</span>
+  </div>
+  
   <!-- Botón para móviles -->
-  <button class="menu-toggle" (click)="toggleMenu()" [class.active]="menuAbierto">
+  <button class="menu-toggle" (click)="toggleMenu()" [class.active]="menuAbierto" type="button" aria-label="Toggle menu">
     <span></span>
     <span></span>
     <span></span>
   </button>
+
+  <!-- Overlay para cerrar menú (solo en móviles) -->
+  <div class="menu-overlay" [class.active]="menuAbierto" (click)="cerrarMenu()"></div>
 
   <!-- Lista del menú -->
   <ul class="menu-list" [class.active]="menuAbierto">

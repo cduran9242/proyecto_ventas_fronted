@@ -8,6 +8,37 @@
   min-width: 250px;
 }
 
+/* Título del menú */
+.menu-title {
+  display: none;
+}
+
+.menu-title-text {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Overlay para cerrar menú */
+.menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.menu-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* Botón toggle para móviles */
 .menu-toggle {
   display: none;
@@ -19,7 +50,10 @@
   border: none;
   cursor: pointer;
   padding: 0;
-  z-index: 10;
+  z-index: 1001;
+  position: absolute;
+  top: 15px;
+  right: 15px;
 }
 
 .menu-toggle span {
@@ -128,12 +162,17 @@
     margin: 10px;
     padding: 15px;
     min-width: auto;
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    z-index: 1000;
+    position: relative;
     border-radius: 10px;
+  }
+
+  .menu-title {
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .menu-overlay {
+    display: block;
   }
 
   .menu-toggle {
@@ -144,6 +183,7 @@
   }
 
   .menu-list {
+    display: none;
     position: absolute;
     top: 100%;
     left: 0;
@@ -151,17 +191,21 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 0 0 10px 10px;
     padding: 10px 0;
-    transform: translateY(-100%);
+    margin-top: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
     opacity: 0;
     visibility: hidden;
+    transform: translateY(-10px);
     transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   }
 
   .menu-list.active {
-    transform: translateY(0);
+    display: flex;
+    flex-direction: column;
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
   }
 
   .menu-link {

@@ -24,37 +24,97 @@ export class Roles {
     estado: '1'
   };
 
-  // Lista de permisos disponibles
+  // Lista de permisos disponibles (módulos del sistema)
   permisosDisponibles = [
     { 
-      id: 'ventas', 
-      nombre: 'Gestión de Ventas', 
-      descripcion: 'Crear, editar, consultar y eliminar ventas',
-      icono: '💰'
-    },
-    { 
-      id: 'productos', 
-      nombre: 'Gestión de Productos', 
-      descripcion: 'Administrar catálogo e inventario',
-      icono: '📦'
-    },
-    { 
-      id: 'usuarios', 
-      nombre: 'Gestión de Usuarios', 
-      descripcion: 'Crear y administrar usuarios del sistema',
+      id: 'usuario', 
+      nombre: 'Módulo Usuario', 
+      descripcion: 'Gestión de usuarios del sistema',
       icono: '👥'
     },
     { 
-      id: 'reportes', 
-      nombre: 'Reportes y Análisis', 
-      descripcion: 'Generar y consultar reportes',
+      id: 'perfil', 
+      nombre: 'Módulo Perfil', 
+      descripcion: 'Administración de perfiles y roles',
+      icono: '🔐'
+    },
+    { 
+      id: 'factura', 
+      nombre: 'Módulo Factura', 
+      descripcion: 'Gestión de facturación',
+      icono: '📄'
+    },
+    { 
+      id: 'bodega', 
+      nombre: 'Módulo Bodega', 
+      descripcion: 'Control de inventario y almacén',
+      icono: '🏪'
+    },
+    { 
+      id: 'cliente', 
+      nombre: 'Módulo Cliente', 
+      descripcion: 'Gestión de clientes',
+      icono: '👤'
+    },
+    { 
+      id: 'proveedor', 
+      nombre: 'Módulo Proveedor', 
+      descripcion: 'Administración de proveedores',
+      icono: '🚚'
+    },
+    { 
+      id: 'punto_venta', 
+      nombre: 'Módulo Punto de Venta', 
+      descripcion: 'Sistema de punto de venta',
+      icono: '💳'
+    },
+    { 
+      id: 'calendario', 
+      nombre: 'Módulo Calendario', 
+      descripcion: 'Gestión de calendarios y eventos',
+      icono: '📅'
+    },
+    { 
+      id: 'ciudad', 
+      nombre: 'Módulo Ciudad', 
+      descripcion: 'Administración de ciudades',
+      icono: '🏙️'
+    },
+    { 
+      id: 'marca', 
+      nombre: 'Módulo Marca', 
+      descripcion: 'Gestión de marcas',
+      icono: '🏷️'
+    },
+    { 
+      id: 'productos', 
+      nombre: 'Módulo Productos', 
+      descripcion: 'Catálogo de productos',
+      icono: '📦'
+    },
+    { 
+      id: 'combo', 
+      nombre: 'Módulo Combo', 
+      descripcion: 'Gestión de combos y paquetes',
+      icono: '🎁'
+    },
+    { 
+      id: 'reporte', 
+      nombre: 'Módulo Reporte', 
+      descripcion: 'Generación de reportes',
       icono: '📊'
     },
     { 
-      id: 'roles', 
-      nombre: 'Gestión de Roles', 
-      descripcion: 'Crear y administrar roles y permisos',
-      icono: '🔐'
+      id: 'correo', 
+      nombre: 'Módulo Correo', 
+      descripcion: 'Sistema de correo electrónico',
+      icono: '📧'
+    },
+    { 
+      id: 'tipo_producto', 
+      nombre: 'Módulo Tipo Producto', 
+      descripcion: 'Clasificación de tipos de productos',
+      icono: '🏷️'
     }
   ];
 
@@ -62,30 +122,57 @@ export class Roles {
   roles = [
     { 
       id: 1, 
-      nombre: 'Administrador', 
+      nombre: 'ADMINISTRADOR', 
       descripcion: 'Acceso completo al sistema',
-      permisos: ['ventas', 'productos', 'usuarios', 'reportes', 'roles'],
+      permisos: ['usuario', 'perfil', 'factura', 'bodega', 'cliente', 'proveedor', 'punto_venta', 'calendario', 'ciudad', 'marca', 'productos', 'combo', 'reporte', 'correo', 'tipo_producto'],
       estado: 'Activo',
       fechaCreacion: '2024-01-15',
       usuariosAsignados: 2
     },
     { 
       id: 2, 
-      nombre: 'Vendedor', 
-      descripcion: 'Acceso a ventas y productos',
-      permisos: ['ventas', 'productos'],
+      nombre: 'FACTURADOR', 
+      descripcion: 'Acceso a facturación y ventas',
+      permisos: ['cliente', 'factura', 'punto_venta', 'productos', 'reporte'],
       estado: 'Activo',
       fechaCreacion: '2024-01-16',
-      usuariosAsignados: 5
+      usuariosAsignados: 3
     },
     { 
       id: 3, 
-      nombre: 'Cliente', 
-      descripcion: 'Acceso limitado de consulta',
-      permisos: ['productos'],
+      nombre: 'BODEGA', 
+      descripcion: 'Control de inventario y almacén',
+      permisos: ['bodega', 'productos', 'proveedor', 'marca', 'tipo_producto', 'reporte'],
       estado: 'Activo',
       fechaCreacion: '2024-01-17',
-      usuariosAsignados: 15
+      usuariosAsignados: 4
+    },
+    { 
+      id: 4, 
+      nombre: 'VENDEDOR', 
+      descripcion: 'Acceso a ventas y clientes',
+      permisos: ['cliente', 'punto_venta', 'productos', 'combo', 'reporte'],
+      estado: 'Activo',
+      fechaCreacion: '2024-01-18',
+      usuariosAsignados: 6
+    },
+    { 
+      id: 5, 
+      nombre: 'VENDEDOR 2', 
+      descripcion: 'Acceso limitado a ventas',
+      permisos: ['cliente', 'punto_venta', 'productos'],
+      estado: 'Activo',
+      fechaCreacion: '2024-01-19',
+      usuariosAsignados: 2
+    },
+    { 
+      id: 6, 
+      nombre: 'OPERARIO', 
+      descripcion: 'Acceso básico al sistema',
+      permisos: ['productos', 'bodega'],
+      estado: 'Activo',
+      fechaCreacion: '2024-01-20',
+      usuariosAsignados: 8
     }
   ];
 

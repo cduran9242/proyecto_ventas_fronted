@@ -310,22 +310,41 @@ code {
 /* Responsive */
 @media (max-width: 768px) {
   .productos-container {
-    padding: 15px;
+    padding: 10px;
+    margin: 0;
+  }
+  
+  .productos-header {
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .productos-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .nuevo-producto-section,
+  .productos-lista-section {
+    padding: 20px;
+    margin-bottom: 15px;
   }
   
   .form-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
   
   .form-actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    gap: 10px;
   }
   
   .btn-crear,
   .btn-limpiar {
     width: 100%;
-    max-width: 200px;
+    padding: 15px;
+    font-size: 16px;
   }
   
   .tabla-productos {
@@ -334,7 +353,14 @@ code {
   
   .tabla-productos th,
   .tabla-productos td {
-    padding: 8px 6px;
+    padding: 8px 4px;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 15px;
+    font-size: 16px;
   }
   
   .descripcion-cell {
@@ -343,17 +369,37 @@ code {
 }
 
 @media (max-width: 480px) {
+  .productos-container {
+    padding: 5px;
+  }
+  
+  .productos-header {
+    padding: 15px;
+  }
+  
   .productos-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
   
   .nuevo-producto-section,
   .productos-lista-section {
-    padding: 20px;
+    padding: 15px;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 12px;
+    font-size: 16px;
   }
   
   .tabla-container {
     font-size: 11px;
+  }
+  
+  .tabla-productos th,
+  .tabla-productos td {
+    padding: 6px 2px;
   }
   
   .codigo-input {

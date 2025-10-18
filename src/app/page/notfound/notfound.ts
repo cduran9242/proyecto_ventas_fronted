@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
-import { Nav } from '../../components/nav/nav';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-notfound',
-  imports: [Nav],
+  standalone: true,
+  imports: [RouterModule],
   templateUrl: './notfound.html',
   styleUrl: './notfound.css'
 })

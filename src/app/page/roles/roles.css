@@ -1,58 +1,75 @@
 .roles-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f5dc; /* Fondo amarillo claro como en la referencia */
   min-height: 100vh;
 }
 
 /* Header */
 .roles-header {
   background: white;
-  border-radius: 15px;
-  padding: 30px;
-  margin-bottom: 25px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
 .roles-header h1 {
   color: #2c3e50;
-  font-size: 2.2rem;
-  margin-bottom: 10px;
+  font-size: 1.8rem;
+  margin-bottom: 5px;
   font-weight: 700;
+  letter-spacing: 1px;
 }
 
 .roles-header p {
   color: #7f8c8d;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 /* Sección de nuevo rol */
 .nuevo-rol-section {
   background: white;
-  border-radius: 15px;
-  padding: 30px;
-  margin-bottom: 25px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 30px;
 }
 
-.nuevo-rol-section h2 {
-  color: #2c3e50;
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
-  font-size: 1.5rem;
+}
+
+.form-header h2 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.user-icon {
+  font-size: 3rem;
+  opacity: 0.7;
 }
 
 .rol-form {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 20px;
 }
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 15px;
 }
 
 .form-group {
@@ -89,92 +106,34 @@
 /* Sección de permisos */
 .permisos-section {
   background: #f8f9fa;
-  border-radius: 12px;
-  padding: 25px;
-  border: 2px solid #e1e5e9;
-}
-
-.permisos-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.permisos-header h3 {
-  color: #2c3e50;
-  margin: 0;
-  font-size: 1.2rem;
-}
-
-.btn-toggle-all {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-toggle-all:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e1e5e9;
 }
 
 .permisos-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
 }
 
-.permiso-card {
-  background: white;
-  border: 2px solid #e1e5e9;
-  border-radius: 12px;
-  padding: 20px;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.permiso-card:hover {
-  border-color: #667eea;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.1);
-}
-
-.permiso-card.selected {
-  border-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-}
-
-.permiso-header {
+.permiso-checkbox-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
 }
 
-.permiso-icon {
-  font-size: 1.5rem;
+.permiso-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
 }
 
-.permiso-header h4 {
-  color: #2c3e50;
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.permiso-descripcion {
-  color: #7f8c8d;
-  font-size: 0.9rem;
-  margin-bottom: 15px;
-  line-height: 1.4;
+.permiso-checkbox:hover {
+  background-color: #f0f0f0;
 }
 
 .permiso-checkbox {
@@ -223,46 +182,62 @@
   flex-wrap: wrap;
 }
 
-.btn-crear,
-.btn-limpiar {
-  padding: 12px 25px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
+.btn-nuevo, .btn-registrar, .btn-actualizar, .btn-eliminar {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 150px;
+  transition: all 0.2s ease;
+  min-width: 80px;
 }
 
-.btn-crear {
-  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+.btn-nuevo {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.btn-nuevo:hover {
+  background: #e9ecef;
+}
+
+.btn-registrar {
+  background: #28a745;
   color: white;
+  border-color: #28a745;
 }
 
-.btn-limpiar {
-  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+.btn-registrar:hover {
+  background: #218838;
+}
+
+.btn-actualizar {
+  background: #007bff;
   color: white;
+  border-color: #007bff;
 }
 
-.btn-crear:hover,
-.btn-limpiar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+.btn-actualizar:hover {
+  background: #0056b3;
+}
+
+.btn-eliminar {
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
+}
+
+.btn-eliminar:hover {
+  background: #c82333;
 }
 
 /* Sección de lista de roles */
 .roles-lista-section {
   background: white;
-  border-radius: 15px;
-  padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.roles-lista-section h2 {
-  color: #2c3e50;
-  margin-bottom: 20px;
-  font-size: 1.5rem;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .tabla-container {
@@ -273,24 +248,51 @@
   width: 100%;
   border-collapse: collapse;
   background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid #ddd;
+  font-size: 12px;
 }
 
 .tabla-roles th {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 15px 12px;
-  text-align: left;
+  background: #f8f9fa;
+  color: #495057;
+  padding: 8px 6px;
+  text-align: center;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 11px;
+  border: 1px solid #ddd;
 }
 
 .tabla-roles td {
-  padding: 12px;
-  border-bottom: 1px solid #e1e5e9;
-  font-size: 14px;
+  padding: 6px;
+  border: 1px solid #ddd;
+  font-size: 11px;
+  text-align: center;
+}
+
+.tabla-roles tr.selected {
+  background-color: #e3f2fd;
+}
+
+.perfil-nombre {
+  text-align: left !important;
+  font-weight: 600;
+}
+
+.permiso-cell {
+  text-align: center;
+}
+
+.permiso-indicator {
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.permiso-indicator.ok {
+  color: #28a745;
+}
+
+.permiso-indicator.no {
+  color: #6c757d;
 }
 
 .tabla-roles tbody tr:hover {
@@ -388,58 +390,98 @@
 /* Responsive */
 @media (max-width: 768px) {
   .roles-container {
-    padding: 15px;
+    padding: 10px;
+    margin: 0;
+  }
+  
+  .roles-header {
+    padding: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .roles-header h1 {
+    font-size: 1.6rem;
+  }
+  
+  .nuevo-rol-section {
+    padding: 20px;
+    margin-bottom: 15px;
+    flex-direction: column;
+  }
+  
+  .form-header {
+    margin-bottom: 15px;
+  }
+  
+  .user-icon {
+    font-size: 2rem;
   }
   
   .form-grid {
     grid-template-columns: 1fr;
-  }
-  
-  .permisos-header {
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 15px;
   }
   
   .permisos-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
   }
   
   .form-actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    gap: 10px;
   }
   
-  .btn-crear,
-  .btn-limpiar {
+  .btn-nuevo, .btn-registrar, .btn-actualizar, .btn-eliminar {
     width: 100%;
-    max-width: 200px;
+    padding: 12px;
+    font-size: 14px;
   }
   
   .tabla-roles {
-    font-size: 12px;
+    font-size: 10px;
   }
   
   .tabla-roles th,
   .tabla-roles td {
-    padding: 8px 6px;
+    padding: 4px 2px;
   }
 }
 
 @media (max-width: 480px) {
-  .roles-header h1 {
-    font-size: 1.8rem;
+  .roles-container {
+    padding: 5px;
   }
   
-  .nuevo-rol-section,
-  .roles-lista-section {
-    padding: 20px;
+  .roles-header {
+    padding: 15px;
+  }
+  
+  .roles-header h1 {
+    font-size: 1.4rem;
+  }
+  
+  .nuevo-rol-section {
+    padding: 15px;
+    flex-direction: column;
+  }
+  
+  .user-icon {
+    font-size: 1.5rem;
+  }
+  
+  .permisos-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
   
   .tabla-container {
-    font-size: 11px;
+    font-size: 9px;
   }
   
-  .permiso-card {
-    padding: 15px;
+  .tabla-roles th,
+  .tabla-roles td {
+    padding: 3px 1px;
   }
 }
