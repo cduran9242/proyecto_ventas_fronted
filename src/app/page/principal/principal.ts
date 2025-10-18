@@ -15,7 +15,6 @@ export class PrincipalComponent {
     nombre: 'Sistema de Gestión de Ventas',
     version: '1.0.0',
     descripcion: 'Sistema integral para la gestión de ventas, usuarios, productos y reportes',
-    tecnologias: ['Angular 20', 'FastAPI', 'PostgreSQL'],
     desarrolladores: ['Ciro Durán', 'Anders Muñoz'],
     fecha: new Date().getFullYear()
   };
