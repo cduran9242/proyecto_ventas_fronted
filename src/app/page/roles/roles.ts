@@ -130,8 +130,18 @@ export class Roles {
   toggleTodosPermisos() {
     const todosSeleccionados = Object.values(this.nuevoRol.permisos).every(p => p);
     Object.keys(this.nuevoRol.permisos).forEach(key => {
-      this.nuevoRol.permisos[key as keyof typeof this.nuevoRol.permisos] = !todosSeleccionados;
+      (this.nuevoRol.permisos as any)[key] = !todosSeleccionados;
     });
+  }
+
+  // Método para obtener el valor de un permiso
+  getPermisoValue(permisoId: string): boolean {
+    return (this.nuevoRol.permisos as any)[permisoId] || false;
+  }
+
+  // Método para establecer el valor de un permiso
+  setPermisoValue(permisoId: string, value: boolean) {
+    (this.nuevoRol.permisos as any)[permisoId] = value;
   }
 
   // Método para verificar si un rol tiene un permiso específico
@@ -143,5 +153,11 @@ export class Roles {
   obtenerNombrePermiso(permisoId: string): string {
     const permiso = this.permisosDisponibles.find(p => p.id === permisoId);
     return permiso ? permiso.nombre : permisoId;
+  }
+
+  // Método para obtener el icono del permiso
+  getPermisoIcono(permisoId: string): string {
+    const permiso = this.permisosDisponibles.find(p => p.id === permisoId);
+    return permiso ? permiso.icono : '❓';
   }
 }
