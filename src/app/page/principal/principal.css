@@ -217,22 +217,23 @@
   font-size: 1.5rem;
 }
 
-.developer-card p {
-  color: #7f8c8d;
-  font-size: 1.1rem;
-  margin-bottom: 20px;
-}
-
-.contact-info {
+.developers-list {
   display: flex;
-  justify-content: center;
-  gap: 30px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-.contact-info span {
-  color: #667eea;
-  font-weight: 500;
+.developer-name {
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 /* Responsive */
@@ -258,9 +259,13 @@
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .contact-info {
-    flex-direction: column;
-    gap: 10px;
+  .developers-list {
+    gap: 8px;
+  }
+  
+  .developer-name {
+    font-size: 1.1rem;
+    padding: 6px 12px;
   }
 }
 

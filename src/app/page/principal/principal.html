@@ -61,10 +61,10 @@
   <div class="developer-section">
     <div class="developer-card">
       <h3>Desarrollado por</h3>
-      <p>{{proyectoInfo.desarrollador}}</p>
-      <div class="contact-info">
-        <span>📧 estudiante@universidad.edu</span>
-        <span>📱 +57 300 123 4567</span>
+      <div class="developers-list">
+        <p *ngFor="let desarrollador of proyectoInfo.desarrolladores" class="developer-name">
+          {{desarrollador}}
+        </p>
       </div>
     </div>
   </div>
