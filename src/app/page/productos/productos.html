@@ -1,0 +1,179 @@
+<div class="productos-container">
+  <div class="productos-header">
+    <h1>📦 Gestión de Productos</h1>
+    <p>Administra el catálogo de productos e inventario del sistema</p>
+  </div>
+
+  <!-- Formulario de nuevo producto -->
+  <div class="nuevo-producto-section">
+    <h2>➕ Nuevo Producto</h2>
+    <form class="producto-form" (ngSubmit)="crearProducto()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="nombre">Nombre del Producto:</label>
+          <input 
+            type="text" 
+            id="nombre" 
+            [(ngModel)]="nuevoProducto.nombre" 
+            name="nombre"
+            placeholder="Nombre del producto"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción:</label>
+          <textarea 
+            id="descripcion" 
+            [(ngModel)]="nuevoProducto.descripcion" 
+            name="descripcion"
+            placeholder="Descripción detallada del producto"
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="precio">Precio:</label>
+          <input 
+            type="number" 
+            id="precio" 
+            [(ngModel)]="nuevoProducto.precio" 
+            name="precio"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="stock">Stock:</label>
+          <input 
+            type="number" 
+            id="stock" 
+            [(ngModel)]="nuevoProducto.stock" 
+            name="stock"
+            min="0"
+            placeholder="0"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="categoria">Categoría:</label>
+          <select 
+            id="categoria" 
+            [(ngModel)]="nuevoProducto.categoria" 
+            name="categoria"
+            (change)="generarCodigo()"
+            required
+          >
+            <option *ngFor="let categoria of categorias" [value]="categoria.valor">
+              {{categoria.texto}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="marca">Marca:</label>
+          <select 
+            id="marca" 
+            [(ngModel)]="nuevoProducto.marca" 
+            name="marca"
+            required
+          >
+            <option *ngFor="let marca of marcas" [value]="marca.valor">
+              {{marca.texto}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="codigo">Código del Producto:</label>
+          <div class="codigo-input">
+            <input 
+              type="text" 
+              id="codigo" 
+              [(ngModel)]="nuevoProducto.codigo" 
+              name="codigo"
+              placeholder="Código automático"
+              readonly
+            >
+            <button type="button" class="btn-generar" (click)="generarCodigo()">🔄</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="fechaVencimiento">Fecha de Vencimiento:</label>
+          <input 
+            type="date" 
+            id="fechaVencimiento" 
+            [(ngModel)]="nuevoProducto.fechaVencimiento" 
+            name="fechaVencimiento"
+          >
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-crear">✅ Crear Producto</button>
+        <button type="button" class="btn-limpiar" (click)="limpiarFormulario()">🧹 Limpiar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de productos -->
+  <div class="productos-lista-section">
+    <h2>📋 Catálogo de Productos</h2>
+    <div class="tabla-container">
+      <table class="tabla-productos">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Categoría</th>
+            <th>Marca</th>
+            <th>Código</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let producto of productos">
+            <td>{{producto.id}}</td>
+            <td>{{producto.nombre}}</td>
+            <td class="descripcion-cell">{{producto.descripcion}}</td>
+            <td>${{producto.precio | number}}</td>
+            <td>
+              <span class="stock-badge" 
+                    [class.alto]="producto.stock > 20"
+                    [class.medio]="producto.stock > 10 && producto.stock <= 20"
+                    [class.bajo]="producto.stock <= 10">
+                {{producto.stock}}
+              </span>
+            </td>
+            <td>
+              <span class="categoria-badge">{{producto.categoria}}</span>
+            </td>
+            <td>{{producto.marca}}</td>
+            <td><code>{{producto.codigo}}</code></td>
+            <td>
+              <span class="estado-badge" 
+                    [class.activo]="producto.estado === 'Activo'"
+                    [class.inactivo]="producto.estado === 'Inactivo'">
+                {{producto.estado}}
+              </span>
+            </td>
+            <td>
+              <button class="btn-ver" (click)="editarProducto(producto)">👁️ Ver</button>
+              <button class="btn-editar" (click)="editarProducto(producto)">✏️ Editar</button>
+              <button class="btn-eliminar" (click)="eliminarProducto(producto)">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

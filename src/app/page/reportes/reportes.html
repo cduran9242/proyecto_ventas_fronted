@@ -1,2 +1,124 @@
-<app-nav></app-nav>
-<p>reportes works!</p>
+<div class="reportes-container">
+  <div class="reportes-header">
+    <h1>📊 Reportes y Análisis</h1>
+    <p>Genera reportes detallados con diferentes parámetros de búsqueda</p>
+  </div>
+
+  <!-- Formulario de filtros -->
+  <div class="filtros-section">
+    <h2>🔍 Filtros de Búsqueda</h2>
+    <form class="filtros-form" (ngSubmit)="buscar()">
+      <div class="filtros-grid">
+        <div class="form-group">
+          <label for="fechaInicio">Fecha Inicio:</label>
+          <input 
+            type="date" 
+            id="fechaInicio" 
+            [(ngModel)]="filtros.fechaInicio" 
+            name="fechaInicio"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="fechaFin">Fecha Fin:</label>
+          <input 
+            type="date" 
+            id="fechaFin" 
+            [(ngModel)]="filtros.fechaFin" 
+            name="fechaFin"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="tipoReporte">Tipo de Reporte:</label>
+          <select 
+            id="tipoReporte" 
+            [(ngModel)]="filtros.tipoReporte" 
+            name="tipoReporte"
+          >
+            <option *ngFor="let tipo of tiposReporte" [value]="tipo.valor">
+              {{tipo.texto}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="usuario">Usuario:</label>
+          <input 
+            type="text" 
+            id="usuario" 
+            [(ngModel)]="filtros.usuario" 
+            name="usuario"
+            placeholder="Buscar por usuario"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado:</label>
+          <select 
+            id="estado" 
+            [(ngModel)]="filtros.estado" 
+            name="estado"
+          >
+            <option *ngFor="let estado of estados" [value]="estado.valor">
+              {{estado.texto}}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-buscar">🔍 Buscar</button>
+        <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">🧹 Limpiar</button>
+        <button type="button" class="btn-exportar" (click)="exportar()">📤 Exportar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de resultados -->
+  <div class="resultados-section">
+    <h2>📋 Resultados del Reporte</h2>
+    <div class="tabla-container">
+      <table class="tabla-reportes">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Descripción</th>
+            <th>Monto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of datosReporte">
+            <td>{{item.id}}</td>
+            <td>{{item.fecha}}</td>
+            <td>{{item.descripcion}}</td>
+            <td>${{item.monto | number}}</td>
+            <td>
+              <span class="estado-badge" [class.activo]="item.estado === 'Activo'" 
+                    [class.inactivo]="item.estado === 'Inactivo'">
+                {{item.estado}}
+              </span>
+            </td>
+            <td>
+              <button class="btn-ver">👁️ Ver</button>
+              <button class="btn-editar">✏️ Editar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Información de paginación -->
+    <div class="paginacion-info">
+      <p>Mostrando 4 de 4 registros</p>
+      <div class="paginacion-controls">
+        <button class="btn-pagina" disabled>« Anterior</button>
+        <span class="pagina-actual">Página 1 de 1</span>
+        <button class="btn-pagina" disabled>Siguiente »</button>
+      </div>
+    </div>
+  </div>
+</div>

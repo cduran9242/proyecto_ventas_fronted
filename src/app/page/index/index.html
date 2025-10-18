@@ -1,3 +1,77 @@
-<app-header></app-header>
-<app-nav></app-nav>
-<app-footer></app-footer>
+<div class="index-container">
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Sistema de Gestión de Ventas</h1>
+      <p class="hero-subtitle">Plataforma integral para la administración de ventas, usuarios, productos y reportes</p>
+      
+      <div class="hero-buttons">
+        <button class="btn-primary" (click)="irAlLogin()">
+          🔐 Iniciar Sesión
+        </button>
+        <button class="btn-secondary" (click)="irAPrincipal()">
+          🏠 Ver Sistema
+        </button>
+      </div>
+    </div>
+    
+    <div class="hero-image">
+      <div class="floating-card">
+        <div class="card-icon">💼</div>
+        <h3>Gestión Completa</h3>
+        <p>Administra todos los aspectos de tu negocio</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="features-section">
+    <h2>Características Principales</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3>Gestión de Ventas</h3>
+        <p>Registra y administra todas las transacciones de venta con seguimiento completo</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Usuarios y Roles</h3>
+        <p>Sistema completo de usuarios con roles y permisos personalizables</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>Inventario</h3>
+        <p>Control total del catálogo de productos y niveles de stock</p>
+      </div>
+      
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Reportes</h3>
+        <p>Genera reportes detallados y análisis de datos en tiempo real</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tech-section">
+    <h2>Tecnologías Utilizadas</h2>
+    <div class="tech-grid">
+      <div class="tech-item">
+        <div class="tech-logo">🅰️</div>
+        <h4>Angular 20</h4>
+        <p>Framework frontend moderno</p>
+      </div>
+      
+      <div class="tech-item">
+        <div class="tech-logo">⚡</div>
+        <h4>FastAPI</h4>
+        <p>API backend de alto rendimiento</p>
+      </div>
+      
+      <div class="tech-item">
+        <div class="tech-logo">🐘</div>
+        <h4>PostgreSQL</h4>
+        <p>Base de datos robusta</p>
+      </div>
+    </div>
+  </div>
+</div>

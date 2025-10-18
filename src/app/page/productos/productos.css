@@ -1,4 +1,4 @@
-.usuario-container {
+.productos-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
@@ -7,7 +7,7 @@
 }
 
 /* Header */
-.usuario-header {
+.productos-header {
   background: white;
   border-radius: 15px;
   padding: 30px;
@@ -16,20 +16,20 @@
   text-align: center;
 }
 
-.usuario-header h1 {
+.productos-header h1 {
   color: #2c3e50;
   font-size: 2.2rem;
   margin-bottom: 10px;
   font-weight: 700;
 }
 
-.usuario-header p {
+.productos-header p {
   color: #7f8c8d;
   font-size: 1.1rem;
 }
 
-/* Sección de nuevo usuario */
-.nuevo-usuario-section {
+/* Sección de nuevo producto */
+.nuevo-producto-section {
   background: white;
   border-radius: 15px;
   padding: 30px;
@@ -37,13 +37,13 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.nuevo-usuario-section h2 {
+.nuevo-producto-section h2 {
   color: #2c3e50;
   margin-bottom: 20px;
   font-size: 1.5rem;
 }
 
-.usuario-form {
+.producto-form {
   display: flex;
   flex-direction: column;
   gap: 25px;
@@ -68,21 +68,56 @@
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
   padding: 12px 15px;
   border: 2px solid #e1e5e9;
   border-radius: 8px;
   font-size: 16px;
   transition: all 0.3s ease;
   background-color: #f8f9fa;
+  font-family: inherit;
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #667eea;
   background-color: white;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input[readonly] {
+  background-color: #e9ecef;
+  color: #6c757d;
+}
+
+/* Input de código con botón */
+.codigo-input {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.codigo-input input {
+  flex: 1;
+}
+
+.btn-generar {
+  padding: 12px 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.btn-generar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
 /* Acciones del formulario */
@@ -121,15 +156,15 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* Sección de lista de usuarios */
-.usuarios-lista-section {
+/* Sección de lista de productos */
+.productos-lista-section {
   background: white;
   border-radius: 15px;
   padding: 30px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.usuarios-lista-section h2 {
+.productos-lista-section h2 {
   color: #2c3e50;
   margin-bottom: 20px;
   font-size: 1.5rem;
@@ -139,7 +174,7 @@
   overflow-x: auto;
 }
 
-.tabla-usuarios {
+.tabla-productos {
   width: 100%;
   border-collapse: collapse;
   background: white;
@@ -148,7 +183,7 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.tabla-usuarios th {
+.tabla-productos th {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 15px 12px;
@@ -157,18 +192,25 @@
   font-size: 14px;
 }
 
-.tabla-usuarios td {
+.tabla-productos td {
   padding: 12px;
   border-bottom: 1px solid #e1e5e9;
   font-size: 14px;
 }
 
-.tabla-usuarios tbody tr:hover {
+.tabla-productos tbody tr:hover {
   background-color: #f8f9fa;
 }
 
-/* Badges para roles */
-.rol-badge {
+.descripcion-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badges para stock */
+.stock-badge {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 12px;
@@ -176,19 +218,29 @@
   text-transform: uppercase;
 }
 
-.rol-badge.admin {
-  background-color: #dc3545;
-  color: white;
+.stock-badge.alto {
+  background-color: #d4edda;
+  color: #155724;
 }
 
-.rol-badge.vendedor {
-  background-color: #ffc107;
-  color: #212529;
+.stock-badge.medio {
+  background-color: #fff3cd;
+  color: #856404;
 }
 
-.rol-badge.cliente {
-  background-color: #17a2b8;
-  color: white;
+.stock-badge.bajo {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Badges para categorías */
+.categoria-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #e2e3e5;
+  color: #383d41;
 }
 
 /* Badges para estados */
@@ -208,6 +260,16 @@
 .estado-badge.inactivo {
   background-color: #f8d7da;
   color: #721c24;
+}
+
+/* Código del producto */
+code {
+  background-color: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #e83e8c;
 }
 
 /* Botones de acción */
@@ -247,7 +309,7 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .usuario-container {
+  .productos-container {
     padding: 15px;
   }
   
@@ -266,27 +328,39 @@
     max-width: 200px;
   }
   
-  .tabla-usuarios {
+  .tabla-productos {
     font-size: 12px;
   }
   
-  .tabla-usuarios th,
-  .tabla-usuarios td {
+  .tabla-productos th,
+  .tabla-productos td {
     padding: 8px 6px;
+  }
+  
+  .descripcion-cell {
+    max-width: 150px;
   }
 }
 
 @media (max-width: 480px) {
-  .usuario-header h1 {
+  .productos-header h1 {
     font-size: 1.8rem;
   }
   
-  .nuevo-usuario-section,
-  .usuarios-lista-section {
+  .nuevo-producto-section,
+  .productos-lista-section {
     padding: 20px;
   }
   
   .tabla-container {
     font-size: 11px;
+  }
+  
+  .codigo-input {
+    flex-direction: column;
+  }
+  
+  .btn-generar {
+    width: 100%;
   }
 }

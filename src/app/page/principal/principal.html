@@ -1,0 +1,71 @@
+<div class="principal-container">
+  <!-- Header del proyecto -->
+  <div class="project-header">
+    <div class="project-info">
+      <h1>{{proyectoInfo.nombre}}</h1>
+      <p class="project-description">{{proyectoInfo.descripcion}}</p>
+      <div class="project-meta">
+        <span class="version">Versión {{proyectoInfo.version}}</span>
+        <span class="year">{{proyectoInfo.fecha}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información técnica -->
+  <div class="tech-section">
+    <h2>Tecnologías Utilizadas</h2>
+    <div class="tech-grid">
+      <div class="tech-item" *ngFor="let tech of proyectoInfo.tecnologias">
+        <span class="tech-badge">{{tech}}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Módulos del sistema -->
+  <div class="modules-section">
+    <h2>Módulos del Sistema</h2>
+    <div class="modules-grid">
+      <div class="module-card" *ngFor="let modulo of modulos">
+        <div class="module-icon">{{modulo.icono}}</div>
+        <h3>{{modulo.titulo}}</h3>
+        <p>{{modulo.descripcion}}</p>
+        <a [routerLink]="modulo.ruta" class="module-link">Acceder</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estadísticas rápidas -->
+  <div class="stats-section">
+    <h2>Estadísticas del Sistema</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">150+</div>
+        <div class="stat-label">Usuarios Registrados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">2,500+</div>
+        <div class="stat-label">Ventas Realizadas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">500+</div>
+        <div class="stat-label">Productos en Catálogo</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">99.9%</div>
+        <div class="stat-label">Tiempo de Actividad</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información del desarrollador -->
+  <div class="developer-section">
+    <div class="developer-card">
+      <h3>Desarrollado por</h3>
+      <p>{{proyectoInfo.desarrollador}}</p>
+      <div class="contact-info">
+        <span>📧 estudiante@universidad.edu</span>
+        <span>📱 +57 300 123 4567</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,132 @@
+<div class="roles-container">
+  <div class="roles-header">
+    <h1>🔐 Gestión de Roles y Permisos</h1>
+    <p>Administra los roles del sistema y sus permisos de acceso</p>
+  </div>
+
+  <!-- Formulario de nuevo rol -->
+  <div class="nuevo-rol-section">
+    <h2>➕ Nuevo Rol</h2>
+    <form class="rol-form" (ngSubmit)="crearRol()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="nombre">Nombre del Rol:</label>
+          <input 
+            type="text" 
+            id="nombre" 
+            [(ngModel)]="nuevoRol.nombre" 
+            name="nombre"
+            placeholder="Ej: Administrador, Vendedor, Cliente"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="descripcion">Descripción:</label>
+          <textarea 
+            id="descripcion" 
+            [(ngModel)]="nuevoRol.descripcion" 
+            name="descripcion"
+            placeholder="Descripción del rol y sus responsabilidades"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Sección de permisos -->
+      <div class="permisos-section">
+        <div class="permisos-header">
+          <h3>🔑 Permisos del Rol</h3>
+          <button type="button" class="btn-toggle-all" (click)="toggleTodosPermisos()">
+            Seleccionar/Deseleccionar Todos
+          </button>
+        </div>
+        
+        <div class="permisos-grid">
+          <div 
+            *ngFor="let permiso of permisosDisponibles" 
+            class="permiso-card"
+            [class.selected]="nuevoRol.permisos[permiso.id as keyof typeof nuevoRol.permisos]"
+          >
+            <div class="permiso-header">
+              <span class="permiso-icon">{{permiso.icono}}</span>
+              <h4>{{permiso.nombre}}</h4>
+            </div>
+            <p class="permiso-descripcion">{{permiso.descripcion}}</p>
+            <label class="permiso-checkbox">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="nuevoRol.permisos[permiso.id as keyof typeof nuevoRol.permisos]"
+                name="permiso_{{permiso.id}}"
+              >
+              <span class="checkmark"></span>
+              <span class="checkbox-text">Habilitar</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-crear">✅ Crear Rol</button>
+        <button type="button" class="btn-limpiar" (click)="limpiarFormulario()">🧹 Limpiar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de roles -->
+  <div class="roles-lista-section">
+    <h2>📋 Roles del Sistema</h2>
+    <div class="tabla-container">
+      <table class="tabla-roles">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Permisos</th>
+            <th>Usuarios</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rol of roles">
+            <td>{{rol.id}}</td>
+            <td>
+              <div class="rol-nombre">
+                <strong>{{rol.nombre}}</strong>
+              </div>
+            </td>
+            <td class="descripcion-cell">{{rol.descripcion}}</td>
+            <td>
+              <div class="permisos-badges">
+                <span 
+                  *ngFor="let permiso of rol.permisos" 
+                  class="permiso-badge"
+                  [title]="obtenerNombrePermiso(permiso)"
+                >
+                  {{permisosDisponibles.find(p => p.id === permiso)?.icono}}
+                </span>
+              </div>
+            </td>
+            <td>
+              <span class="usuarios-count">{{rol.usuariosAsignados}} usuarios</span>
+            </td>
+            <td>
+              <span class="estado-badge" 
+                    [class.activo]="rol.estado === 'Activo'"
+                    [class.inactivo]="rol.estado === 'Inactivo'">
+                {{rol.estado}}
+              </span>
+            </td>
+            <td>
+              <button class="btn-ver" (click)="editarRol(rol)">👁️ Ver</button>
+              <button class="btn-editar" (click)="editarRol(rol)">✏️ Editar</button>
+              <button class="btn-eliminar" (click)="eliminarRol(rol)">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

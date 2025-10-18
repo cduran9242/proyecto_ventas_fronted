@@ -1,13 +1,22 @@
 import { Component } from '@angular/core';
-import { HeaderComponent } from '../../components/header/header';
-import { FooterComponent } from '../../components/footer/footer';
-import { Nav } from '../../components/nav/nav'; // si existe
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-index',
   standalone: true,
-  imports: [HeaderComponent, Nav, FooterComponent],
   templateUrl: './index.html',
   styleUrl: './index.css'
 })
-export class IndexComponent {}
+export class IndexComponent {
+  constructor(private router: Router) {}
+
+  // Método para ir al login
+  irAlLogin() {
+    this.router.navigate(['/login']);
+  }
+
+  // Método para ir a la página principal
+  irAPrincipal() {
+    this.router.navigate(['/principal']);
+  }
+}

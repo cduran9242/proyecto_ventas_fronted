@@ -1,2 +1,155 @@
-<app-nav></app-nav>
-<p>ventas works!</p>
+<div class="ventas-container">
+  <div class="ventas-header">
+    <h1>💰 Gestión de Ventas</h1>
+    <p>Registra y administra todas las transacciones de venta</p>
+  </div>
+
+  <!-- Formulario de nueva venta -->
+  <div class="nueva-venta-section">
+    <h2>🛒 Nueva Venta</h2>
+    <form class="venta-form" (ngSubmit)="crearVenta()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="cliente">Cliente:</label>
+          <input 
+            type="text" 
+            id="cliente" 
+            [(ngModel)]="nuevaVenta.cliente" 
+            name="cliente"
+            placeholder="Nombre del cliente"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="producto">Producto:</label>
+          <select 
+            id="producto" 
+            [(ngModel)]="nuevaVenta.producto" 
+            name="producto"
+            (change)="seleccionarProducto()"
+            required
+          >
+            <option value="">Seleccionar producto</option>
+            <option *ngFor="let producto of productos" [value]="producto.nombre">
+              {{producto.nombre}} - ${{producto.precio | number}} (Stock: {{producto.stock}})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="cantidad">Cantidad:</label>
+          <input 
+            type="number" 
+            id="cantidad" 
+            [(ngModel)]="nuevaVenta.cantidad" 
+            name="cantidad"
+            min="1"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="precioUnitario">Precio Unitario:</label>
+          <input 
+            type="number" 
+            id="precioUnitario" 
+            [(ngModel)]="nuevaVenta.precioUnitario" 
+            name="precioUnitario"
+            readonly
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="descuento">Descuento (%):</label>
+          <input 
+            type="number" 
+            id="descuento" 
+            [(ngModel)]="nuevaVenta.descuento" 
+            name="descuento"
+            min="0"
+            max="100"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="fecha">Fecha:</label>
+          <input 
+            type="date" 
+            id="fecha" 
+            [(ngModel)]="nuevaVenta.fecha" 
+            name="fecha"
+            required
+          >
+        </div>
+      </div>
+
+      <!-- Resumen de la venta -->
+      <div class="resumen-venta">
+        <h3>📊 Resumen de la Venta</h3>
+        <div class="resumen-grid">
+          <div class="resumen-item">
+            <span>Subtotal:</span>
+            <span>${{(nuevaVenta.cantidad * nuevaVenta.precioUnitario) | number}}</span>
+          </div>
+          <div class="resumen-item">
+            <span>Descuento:</span>
+            <span>${{((nuevaVenta.cantidad * nuevaVenta.precioUnitario) * nuevaVenta.descuento / 100) | number}}</span>
+          </div>
+          <div class="resumen-item total">
+            <span>Total:</span>
+            <span>${{calcularTotal() | number}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-crear">✅ Crear Venta</button>
+        <button type="button" class="btn-limpiar">🧹 Limpiar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de ventas -->
+  <div class="ventas-lista-section">
+    <h2>📋 Historial de Ventas</h2>
+    <div class="tabla-container">
+      <table class="tabla-ventas">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Total</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let venta of ventas">
+            <td>{{venta.id}}</td>
+            <td>{{venta.cliente}}</td>
+            <td>{{venta.producto}}</td>
+            <td>{{venta.cantidad}}</td>
+            <td>${{venta.total | number}}</td>
+            <td>{{venta.fecha}}</td>
+            <td>
+              <span class="estado-badge" 
+                    [class.completada]="venta.estado === 'Completada'"
+                    [class.pendiente]="venta.estado === 'Pendiente'">
+                {{venta.estado}}
+              </span>
+            </td>
+            <td>
+              <button class="btn-ver" (click)="editarVenta(venta)">👁️ Ver</button>
+              <button class="btn-editar" (click)="editarVenta(venta)">✏️ Editar</button>
+              <button class="btn-eliminar" (click)="eliminarVenta(venta)">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,2 +1,165 @@
-<app-nav></app-nav>
-<p>usuario works!</p>
+<div class="usuario-container">
+  <div class="usuario-header">
+    <h1>👥 Gestión de Usuarios</h1>
+    <p>Administra todos los usuarios del sistema con sus roles y permisos</p>
+  </div>
+
+  <!-- Formulario de nuevo usuario -->
+  <div class="nuevo-usuario-section">
+    <h2>➕ Nuevo Usuario</h2>
+    <form class="usuario-form" (ngSubmit)="crearUsuario()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="nombre">Nombre:</label>
+          <input 
+            type="text" 
+            id="nombre" 
+            [(ngModel)]="nuevoUsuario.nombre" 
+            name="nombre"
+            placeholder="Nombre del usuario"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="apellido">Apellido:</label>
+          <input 
+            type="text" 
+            id="apellido" 
+            [(ngModel)]="nuevoUsuario.apellido" 
+            name="apellido"
+            placeholder="Apellido del usuario"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input 
+            type="email" 
+            id="email" 
+            [(ngModel)]="nuevoUsuario.email" 
+            name="email"
+            placeholder="correo@ejemplo.com"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="telefono">Teléfono:</label>
+          <input 
+            type="tel" 
+            id="telefono" 
+            [(ngModel)]="nuevoUsuario.telefono" 
+            name="telefono"
+            placeholder="3001234567"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="direccion">Dirección:</label>
+          <input 
+            type="text" 
+            id="direccion" 
+            [(ngModel)]="nuevoUsuario.direccion" 
+            name="direccion"
+            placeholder="Dirección completa"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="rol">Rol:</label>
+          <select 
+            id="rol" 
+            [(ngModel)]="nuevoUsuario.rol" 
+            name="rol"
+            required
+          >
+            <option *ngFor="let rol of roles" [value]="rol.valor">
+              {{rol.texto}}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="fechaNacimiento">Fecha de Nacimiento:</label>
+          <input 
+            type="date" 
+            id="fechaNacimiento" 
+            [(ngModel)]="nuevoUsuario.fechaNacimiento" 
+            name="fechaNacimiento"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="genero">Género:</label>
+          <select 
+            id="genero" 
+            [(ngModel)]="nuevoUsuario.genero" 
+            name="genero"
+          >
+            <option *ngFor="let genero of generos" [value]="genero.valor">
+              {{genero.texto}}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-crear">✅ Crear Usuario</button>
+        <button type="button" class="btn-limpiar" (click)="limpiarFormulario()">🧹 Limpiar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de usuarios -->
+  <div class="usuarios-lista-section">
+    <h2>📋 Lista de Usuarios</h2>
+    <div class="tabla-container">
+      <table class="tabla-usuarios">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre Completo</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Fecha Creación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let usuario of usuarios">
+            <td>{{usuario.id}}</td>
+            <td>{{usuario.nombre}} {{usuario.apellido}}</td>
+            <td>{{usuario.email}}</td>
+            <td>{{usuario.telefono}}</td>
+            <td>
+              <span class="rol-badge" 
+                    [class.admin]="usuario.rol === 'Administrador'"
+                    [class.vendedor]="usuario.rol === 'Vendedor'"
+                    [class.cliente]="usuario.rol === 'Cliente'">
+                {{usuario.rol}}
+              </span>
+            </td>
+            <td>
+              <span class="estado-badge" 
+                    [class.activo]="usuario.estado === 'Activo'"
+                    [class.inactivo]="usuario.estado === 'Inactivo'">
+                {{usuario.estado}}
+              </span>
+            </td>
+            <td>{{usuario.fechaCreacion}}</td>
+            <td>
+              <button class="btn-ver" (click)="editarUsuario(usuario)">👁️ Ver</button>
+              <button class="btn-editar" (click)="editarUsuario(usuario)">✏️ Editar</button>
+              <button class="btn-eliminar" (click)="eliminarUsuario(usuario)">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
