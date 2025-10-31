@@ -28,29 +28,6 @@
   overflow: hidden;
 }
 
-/* Logo en la esquina superior izquierda */
-.welcome-logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 2;
-}
-
-.logo-circle {
-  width: 40px;
-  height: 40px;
-  border: 2px solid white;
-  border-radius: 50%;
-  background: transparent;
-}
-
-.logo-text {
-  color: white;
-  font-weight: 600;
-  font-size: 18px;
-  letter-spacing: 1px;
-}
-
 /* Contenido de bienvenida centrado */
 .welcome-content {
   flex: 1;
@@ -279,10 +256,6 @@
   
   .login-welcome {
     display: none;
-  }
-  
-  .welcome-logo {
-    margin-bottom: 20px;
   }
   
   .welcome-content {
