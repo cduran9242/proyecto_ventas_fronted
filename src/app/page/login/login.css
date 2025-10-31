@@ -1,50 +1,164 @@
+/* Contenedor principal - Dos columnas */
 .login-container {
   display: flex;
+  width: 90%;
+  max-width: 1200px;
+  height: 75vh;
+  min-height: 600px;
+  max-height: 800px;
+  background: #fafafa;
+  box-sizing: border-box;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin: 0 auto;
+  align-self: center;
+  position: relative;
+}
+
+/* Columna izquierda - Mensaje de bienvenida */
+.login-welcome {
+  flex: 0 0 40%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+  overflow: hidden;
+}
+
+/* Logo en la esquina superior izquierda */
+.welcome-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+}
+
+.logo-circle {
+  width: 40px;
+  height: 40px;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.logo-text {
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+
+/* Contenido de bienvenida centrado */
+.welcome-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  text-align: center;
+  z-index: 2;
   padding: 20px;
 }
 
-.login-card {
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+.welcome-title {
+  color: white;
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.welcome-subtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.2rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* Círculos decorativos de fondo */
+.welcome-decoration {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.decoration-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 0.3;
+}
+
+.circle-1 {
+  width: 200px;
+  height: 200px;
+  top: -50px;
+  right: -50px;
+}
+
+.circle-2 {
+  width: 150px;
+  height: 150px;
+  bottom: 100px;
+  left: -30px;
+}
+
+.circle-3 {
+  width: 120px;
+  height: 120px;
+  top: 50%;
+  right: 20%;
+}
+
+/* Columna derecha - Formulario */
+.login-form-section {
+  flex: 0 0 60%;
+  background: #fafafa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 40px;
+  position: relative;
+}
+
+.form-container {
   width: 100%;
-  max-width: 400px;
-  animation: slideUp 0.5s ease-out;
+  max-width: 450px;
+  background: transparent;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Icono de candado en la esquina superior derecha */
+.form-icon {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  color: rgba(0, 0, 0, 0.1);
+  opacity: 0.5;
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
+.form-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
-.login-header h2 {
+/* Título del formulario */
+.form-title {
   color: #333;
-  margin-bottom: 10px;
-  font-size: 28px;
-  font-weight: 600;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  margin-top: 0;
+  text-align: center;
 }
 
-.login-header p {
-  color: #666;
-  font-size: 16px;
-}
-
+/* Formulario */
 .login-form {
   display: flex;
   flex-direction: column;
@@ -56,84 +170,219 @@
   flex-direction: column;
 }
 
-.form-group label {
-  color: #333;
-  font-weight: 500;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.form-group input {
-  padding: 12px 15px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
+.form-input {
+  padding: 15px 20px;
+  border: 1px solid #e1e5e9;
+  border-radius: 10px;
   font-size: 16px;
-  transition: all 0.3s ease;
   background-color: #f8f9fa;
+  transition: all 0.3s ease;
+  color: #333;
+  font-family: inherit;
 }
 
-.form-group input:focus {
+.form-input::placeholder {
+  color: #999;
+}
+
+.form-input:focus {
   outline: none;
   border-color: #667eea;
   background-color: white;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.btn-login {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* Botón Continuar */
+.btn-continue {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 15px;
-  border-radius: 8px;
+  padding: 18px 30px;
+  border-radius: 10px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
 }
 
-.btn-login:hover {
+.btn-continue:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
 }
 
-.btn-login:active {
+.btn-continue:active {
   transform: translateY(0);
 }
 
-.login-footer {
-  text-align: center;
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px solid #e1e5e9;
+.btn-arrow {
+  background: rgba(255, 255, 255, 0.2);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
 }
 
-.login-footer p {
-  color: #666;
-  font-size: 14px;
-}
-
-.login-footer a {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.login-footer a:hover {
-  text-decoration: underline;
-}
-
-/* Responsive */
-@media (max-width: 480px) {
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
   .login-container {
+    width: 95%;
+    max-width: 900px;
+  }
+  
+  .welcome-title {
+    font-size: 2.5rem;
+  }
+  
+  .welcome-subtitle {
+    font-size: 1rem;
+  }
+  
+  .login-form-section {
+    padding: 30px;
+  }
+}
+
+/* Responsive - Móvil (apilar columnas) */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    width: 100vw;
+    min-width: 350px;
+    max-width: 100vw;
+    min-height: 100vh;
+    max-height: none;
+    aspect-ratio: auto;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+  }
+  
+  .login-welcome {
+    display: none;
+  }
+  
+  .welcome-logo {
+    margin-bottom: 20px;
+  }
+  
+  .welcome-content {
     padding: 10px;
   }
   
-  .login-card {
-    padding: 30px 20px;
+  .welcome-title {
+    font-size: 2rem;
+    margin-bottom: 15px;
   }
   
-  .login-header h2 {
-    font-size: 24px;
+  .welcome-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .decoration-circle {
+    display: none;
+  }
+  
+  .login-form-section {
+    flex: 1;
+    width: 100%;
+    min-width: 350px;
+    height: 100vh;
+    padding: 40px 30px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+  
+  .form-container {
+    max-width: 100%;
+  }
+  
+  .form-icon {
+    top: 20px;
+    right: 20px;
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+  }
+  
+  .form-input {
+    padding: 16px 20px;
+    font-size: 16px; /* Evita zoom en iOS */
+  }
+  
+  .btn-continue {
+    padding: 16px 25px;
+    font-size: 14px;
+  }
+}
+
+/* Responsive - Móvil pequeño */
+@media (max-width: 480px) {
+  .login-container {
+    width: 100vw;
+    min-width: 350px;
+    max-width: 100vw;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    min-height: 100vh;
+    height: 100vh;
+    box-shadow: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+  }
+  
+  .login-welcome {
+    display: none;
+  }
+  
+  .login-form-section {
+    width: 100%;
+    min-width: 350px;
+    height: 100vh;
+    padding: 30px 20px;
+    box-sizing: border-box;
+  }
+  
+  .form-title {
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+  }
+  
+  .form-input {
+    padding: 14px 18px;
+  }
+  
+  .btn-continue {
+    padding: 15px 20px;
+    font-size: 13px;
   }
 }
