@@ -6,11 +6,12 @@ import { filter } from 'rxjs/operators';
 import { HeaderComponent } from './components/header/header';
 import { MenuComponent } from './components/menu/menu';
 import { FooterComponent } from './components/footer/footer';
+import { BreadcrumbComponent } from './components/breadcrumb/breadcrumb';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, HeaderComponent, MenuComponent, FooterComponent],
+  imports: [RouterOutlet, CommonModule, HeaderComponent, MenuComponent, FooterComponent, BreadcrumbComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

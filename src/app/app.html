@@ -1,4 +1,5 @@
 <app-header *ngIf="!isLoginPage"></app-header>
+<app-breadcrumb *ngIf="!isLoginPage"></app-breadcrumb>
 <div class="container" [class.fullscreen]="isLoginPage">
   <app-menu *ngIf="!isLoginPage"></app-menu>
   <main class="content" [class.fullscreen]="isLoginPage">

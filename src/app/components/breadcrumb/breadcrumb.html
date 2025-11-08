@@ -1,0 +1,12 @@
+<nav class="breadcrumb" aria-label="Ruta de navegación">
+  <ul class="breadcrumb-list">
+    <li *ngFor="let item of items; let last = last" class="breadcrumb-item" [class.active]="item.isLast">
+      <a *ngIf="!item.isLast" [routerLink]="item.url">
+        {{ item.label }}
+      </a>
+      <span *ngIf="item.isLast">{{ item.label }}</span>
+      <span *ngIf="!last" class="divider">›</span>
+    </li>
+  </ul>
+</nav>
+
