@@ -22,6 +22,6 @@ export class LoginComponent {
     console.log('Usuario:', this.usuario, 'Password:', this.password);
     
     // Redirigir a la página principal
-    this.router.navigate(['/principal']);
+    this.router.navigate(['/inicio']);
   }
 }

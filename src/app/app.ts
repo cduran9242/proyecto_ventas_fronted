@@ -18,14 +18,23 @@ export class App {
   isLoginPage = false;
 
   constructor(private router: Router) {
+    const isLoginRoute = (url?: string | null): boolean => {
+      if (!url) {
+        return false;
+      }
+
+      const normalizedUrl = url.split('?')[0]?.split('#')[0] ?? url;
+      return normalizedUrl === '/login' || normalizedUrl === '/' || normalizedUrl === '';
+    };
+
     // Escuchar cambios en la ruta
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe((event: any) => {
-        this.isLoginPage = event.url === '/login' || event.urlAfterRedirects === '/login';
+      .subscribe((event: NavigationEnd) => {
+        this.isLoginPage = isLoginRoute(event.urlAfterRedirects ?? event.url);
       });
     
     // Verificar ruta inicial
-    this.isLoginPage = this.router.url === '/login';
+    this.isLoginPage = isLoginRoute(this.router.url);
   }
 }

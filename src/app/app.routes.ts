@@ -10,8 +10,9 @@ import { Roles } from './page/roles/roles';
 import { Notfound } from './page/notfound/notfound';
 
 export const routes: Routes = [
-    {path: '', component: IndexComponent},
+    {path: '', redirectTo: 'login', pathMatch: 'full'},
     {path: 'login', component: LoginComponent},
+    {path: 'inicio', component: IndexComponent},
     {path: 'principal', component: PrincipalComponent},
     {path: 'ventas', component: Ventas},
     {path: 'usuario', component: Usuario},

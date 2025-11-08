@@ -9,7 +9,7 @@
   background: #fafafa;
   box-sizing: border-box;
   border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 5px 5px 5px 5px rgba(0, 0, 0, 0.2);
   overflow: hidden;
   margin: 0 auto;
   align-self: center;
