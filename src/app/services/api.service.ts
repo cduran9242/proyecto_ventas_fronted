@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 // Interfaces para tipado
 export interface Usuario {
@@ -55,6 +56,16 @@ export interface Rol {
   estado: number;
   fechaCreacion?: string;
   fechaActualizacion?: string;
+}
+
+export interface Modulo {
+  id?: number;
+  nombre: string;
+  descripcion: string;
+  ruta: string;
+  estado: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 @Injectable({
@@ -151,6 +162,45 @@ export class ApiService {
 
   eliminarRol(id: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/roles/${id}`);
+  }
+
+  // ========== MODULOS ==========
+  getModulos(): Observable<Modulo[]> {
+    return this.http
+      .get<{ resultado: Modulo[] }>(`${this.baseUrl}/get_modulos/`)
+      .pipe(map(response => response?.resultado ?? []));
+  }
+
+  getModulo(id: number): Observable<Modulo> {
+    return this.http.get<Modulo>(`${this.baseUrl}/get_modulo/${id}`);
+  }
+
+  getModulosActivos(): Observable<Modulo[]> {
+    return this.http
+      .get<{ resultado: Modulo[] }>(`${this.baseUrl}/get_modulos_activos/`)
+      .pipe(map(response => response?.resultado ?? []));
+  }
+
+  crearModulo(modulo: Modulo): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(
+      `${this.baseUrl}/create_modulo`,
+      modulo,
+      { headers: this.headers }
+    );
+  }
+
+  actualizarModulo(id: number, modulo: Modulo): Observable<{ mensaje: string }> {
+    return this.http.put<{ mensaje: string }>(
+      `${this.baseUrl}/update_modulo/${id}`,
+      modulo,
+      { headers: this.headers }
+    );
+  }
+
+  eliminarModulo(id: number): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(
+      `${this.baseUrl}/delete_modulo/${id}`
+    );
   }
 
   // ========== REPORTES ==========

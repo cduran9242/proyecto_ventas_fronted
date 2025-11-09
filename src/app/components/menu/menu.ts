@@ -47,6 +47,12 @@ export class MenuComponent {
       descripcion: 'Administración de roles y permisos'
     },
     {
+      ruta: '/modulos',
+      icono: '🧩',
+      texto: 'Módulos',
+      descripcion: 'Configuración y control de módulos del sistema'
+    },
+    {
       ruta: '/productos',
       icono: '📦',
       texto: 'Productos',

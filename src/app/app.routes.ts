@@ -7,6 +7,7 @@ import { Ventas } from './page/ventas/ventas';
 import { Productos } from './page/productos/productos';
 import { Reportes } from './page/reportes/reportes';
 import { Roles } from './page/roles/roles';
+import { Modulos } from './page/modulos/modulos';
 import { Notfound } from './page/notfound/notfound';
 
 export const routes: Routes = [
@@ -17,6 +18,7 @@ export const routes: Routes = [
     {path: 'ventas', component: Ventas, data: {breadcrumb: ['Gestión Comercial', 'Ventas']}},
     {path: 'usuario', component: Usuario, data: {breadcrumb: ['Administración', 'Usuarios']}},
     {path: 'productos', component: Productos, data: {breadcrumb: ['Inventario', 'Productos']}},
+    {path: 'modulos', component: Modulos, data: {breadcrumb: ['Administración', 'Módulos del sistema']}},
     {path: 'reportes', component: Reportes, data: {breadcrumb: ['Inteligencia', 'Reportes']}},
     {path: 'roles', component: Roles, data: {breadcrumb: ['Administración', 'Roles y permisos']}},
     {path: '**', component: Notfound, data: {breadcrumb: ['Error', 'No encontrado']}}
