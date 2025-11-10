@@ -1,82 +1,179 @@
 <div class="roles-container">
   <div class="roles-header">
-    <h1>ADMINISTRACIÓN DE PERFIL</h1>
-    <p>Gestiona los perfiles de usuario y sus permisos de módulos</p>
+    <h1>Gestión de Roles y Permisos</h1>
+    <p>Configura los roles del sistema y asigna los módulos y acciones que pueden realizar.</p>
   </div>
 
-  <!-- Formulario de nuevo perfil -->
   <div class="nuevo-rol-section">
     <div class="form-header">
-      <h2>Gestión de Perfil</h2>
-      <div class="user-icon">👥</div>
+      <div>
+        <h2>{{ modoEdicion ? 'Editar rol' : 'Registrar nuevo rol' }}</h2>
+        <p>
+          Define el rol y selecciona los módulos a los que tendrá acceso.
+        </p>
+      </div>
+      <div class="user-icon">🛡️</div>
     </div>
-    
-    <form class="rol-form" (ngSubmit)="crearRol()">
+
+    <form class="rol-form" [formGroup]="rolForm" (ngSubmit)="guardarRol()">
       <div class="form-grid">
         <div class="form-group">
-          <label for="nombre">Nombre del perfil:</label>
-          <input 
-            type="text" 
-            id="nombre" 
-            [(ngModel)]="nuevoRol.nombre" 
-            name="nombre"
-            placeholder="Ej: ADMINISTRADOR, VENDEDOR, FACTURADOR"
-            required
+          <label for="nombre">Nombre del rol</label>
+          <input
+            id="nombre"
+            type="text"
+            placeholder="Ej: Administrador, Facturador"
+            formControlName="nombre"
+            [class.error]="nombre?.invalid && (nombre?.dirty || nombre?.touched)"
+          />
+          <small *ngIf="nombre?.hasError('required') && (nombre?.dirty || nombre?.touched)">
+            El nombre es obligatorio.
+          </small>
+          <small *ngIf="nombre?.hasError('maxlength') && (nombre?.dirty || nombre?.touched)">
+            Máximo 100 caracteres.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado</label>
+          <select
+            id="estado"
+            formControlName="estado"
+            [class.error]="estado?.invalid && (estado?.dirty || estado?.touched)"
           >
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
         </div>
       </div>
 
-      <!-- Sección de permisos -->
-      <div class="permisos-section">
-        <div class="permisos-grid">
-          <div 
-            *ngFor="let permiso of permisosDisponibles" 
-            class="permiso-checkbox-item"
+      <div class="form-group">
+        <label for="descripcion">Descripción</label>
+        <textarea
+          id="descripcion"
+          rows="3"
+          placeholder="Describe las responsabilidades o alcance de este rol"
+          formControlName="descripcion"
+          [class.error]="descripcion?.invalid && (descripcion?.dirty || descripcion?.touched)"
+        ></textarea>
+        <small *ngIf="descripcion?.hasError('maxlength') && (descripcion?.dirty || descripcion?.touched)">
+          Máximo 255 caracteres.
+        </small>
+      </div>
+
+      <section class="permisos-section">
+        <header class="permisos-header">
+          <h3>Módulos disponibles</h3>
+          <p>Selecciona los módulos y define los permisos por acción.</p>
+        </header>
+
+        <div class="permisos-grid" formArrayName="modulos">
+          <div
+            class="modulo-card"
+            *ngFor="let moduloCtrl of modulosControles; let i = index"
+            [formGroupName]="i"
           >
-            <label class="permiso-checkbox">
-              <input 
-                type="checkbox" 
-                [checked]="getPermisoValue(permiso.id)"
-                (change)="setPermisoValue(permiso.id, $event.target.checked)"
-                name="permiso_{{permiso.id}}"
-              >
-              <span class="checkmark"></span>
-              <span class="checkbox-text">{{permiso.nombre}}</span>
-            </label>
+            <div class="modulo-header">
+              <label>
+                <input type="checkbox" formControlName="seleccionado" />
+                <span>{{ moduloCtrl.get('nombre_modulo')?.value }}</span>
+              </label>
+              <span class="modulo-estado" [class.inactivo]="moduloCtrl.get('estado')?.value === 'Inactivo'">
+                {{ moduloCtrl.get('estado')?.value }}
+              </span>
+            </div>
+
+            <div class="modulo-permisos" *ngIf="moduloCtrl.get('seleccionado')?.value">
+              <label>
+                <input type="checkbox" formControlName="puede_ver" />
+                Ver
+              </label>
+              <label>
+                <input type="checkbox" formControlName="puede_crear" />
+                Crear
+              </label>
+              <label>
+                <input type="checkbox" formControlName="puede_editar" />
+                Editar
+              </label>
+              <label>
+                <input type="checkbox" formControlName="puede_eliminar" />
+                Eliminar
+              </label>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div class="form-actions">
-        <button type="button" class="btn-nuevo">Nuevo</button>
-        <button type="submit" class="btn-registrar">Registrar</button>
-        <button type="button" class="btn-actualizar">Actualizar</button>
-        <button type="button" class="btn-eliminar">Eliminar</button>
+        <button type="submit" class="btn-registrar" [disabled]="cargando">
+          {{ modoEdicion ? '💾 Guardar cambios' : '✅ Registrar rol' }}
+        </button>
+        <button type="button" class="btn-nuevo" (click)="modoEdicion ? cancelarEdicion() : resetFormulario()" [disabled]="cargando">
+          {{ modoEdicion ? '↩️ Cancelar edición' : '🧹 Limpiar' }}
+        </button>
       </div>
     </form>
+
+    <div class="feedback">
+      <div class="alert success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+      <div class="alert error" *ngIf="mensajeError">{{ mensajeError }}</div>
+    </div>
   </div>
 
-  <!-- Tabla de perfiles y permisos -->
   <div class="roles-lista-section">
+    <div class="lista-header">
+      <h2>Roles configurados</h2>
+      <button class="btn-refrescar" type="button" (click)="cargarRoles()" [disabled]="cargando">
+        🔄 Actualizar
+      </button>
+    </div>
+
     <div class="tabla-container">
       <table class="tabla-roles">
         <thead>
           <tr>
-            <th>PERFIL</th>
-            <th *ngFor="let permiso of permisosDisponibles">{{permiso.nombre.toUpperCase().replace('MÓDULO ', '')}}</th>
+            <th>Rol</th>
+            <th>Descripción</th>
+            <th>Módulos asignados</th>
+            <th>Estado</th>
+            <th>Creado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let rol of roles" [class.selected]="rol.id === 1">
-            <td class="perfil-nombre">
-              <strong>{{rol.nombre}}</strong>
+          <tr *ngIf="cargando">
+            <td colspan="6" class="loading-row">Cargando roles...</td>
+          </tr>
+
+          <tr *ngIf="!cargando && roles.length === 0">
+            <td colspan="6" class="empty-row">No hay roles registrados todavía.</td>
+          </tr>
+
+          <tr *ngFor="let rol of roles" [class.selected]="rolSeleccionadoId === rol.id">
+            <td class="perfil-nombre">{{ rol.nombre }}</td>
+            <td class="descripcion-cell">{{ rol.descripcion || '—' }}</td>
+            <td>
+              <div class="permisos-badges">
+                <span class="permiso-badge" *ngFor="let modulo of rol.modulos">
+                  {{ modulo.nombre_modulo || ('Módulo ' + modulo.modulo_id) }}
+                  <small>({{ (modulo.permisos || []).join(', ') || 'ver' }})</small>
+                </span>
+              </div>
             </td>
-            <td *ngFor="let permiso of permisosDisponibles" class="permiso-cell">
-              <span class="permiso-indicator" 
-                    [class.ok]="tienePermiso(rol, permiso.id)"
-                    [class.no]="!tienePermiso(rol, permiso.id)">
-                {{tienePermiso(rol, permiso.id) ? 'OK' : '--'}}
+            <td>
+              <span class="estado-badge" [class.activo]="rol.estado === 'Activo'" [class.inactivo]="rol.estado !== 'Activo'">
+                {{ rol.estado }}
               </span>
+            </td>
+            <td>{{ rol.created_at | date:'short' }}</td>
+            <td>
+              <button class="btn-editar" type="button" (click)="editarRol(rol)">
+                ✏️ Editar
+              </button>
+              <button class="btn-eliminar" type="button" (click)="eliminarRol(rol)">
+                🗑️ Eliminar
+              </button>
             </td>
           </tr>
         </tbody>

@@ -1,250 +1,335 @@
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
+
+import { ApiService, Modulo, Rol, RolModulo } from '../../services/api.service';
+
+interface ModuloFormValue {
+  modulo_id: number;
+  nombre_modulo: string;
+  seleccionado: boolean;
+  puede_ver: boolean;
+  puede_crear: boolean;
+  puede_editar: boolean;
+  puede_eliminar: boolean;
+  estado: string;
+}
 
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './roles.html',
   styleUrl: './roles.css'
 })
-export class Roles {
-  // Formulario de nuevo rol
-  nuevoRol = {
-    nombre: '',
-    descripcion: '',
-    permisos: {
-      ventas: false,
-      productos: false,
-      usuarios: false,
-      reportes: false,
-      roles: false
-    },
-    estado: '1'
-  };
+export class RolesPage implements OnInit {
+  rolForm: FormGroup;
 
-  // Lista de permisos disponibles (módulos del sistema)
-  permisosDisponibles = [
-    { 
-      id: 'usuario', 
-      nombre: 'Módulo Usuario', 
-      descripcion: 'Gestión de usuarios del sistema',
-      icono: '👥'
-    },
-    { 
-      id: 'perfil', 
-      nombre: 'Módulo Perfil', 
-      descripcion: 'Administración de perfiles y roles',
-      icono: '🔐'
-    },
-    { 
-      id: 'factura', 
-      nombre: 'Módulo Factura', 
-      descripcion: 'Gestión de facturación',
-      icono: '📄'
-    },
-    { 
-      id: 'bodega', 
-      nombre: 'Módulo Bodega', 
-      descripcion: 'Control de inventario y almacén',
-      icono: '🏪'
-    },
-    { 
-      id: 'cliente', 
-      nombre: 'Módulo Cliente', 
-      descripcion: 'Gestión de clientes',
-      icono: '👤'
-    },
-    { 
-      id: 'proveedor', 
-      nombre: 'Módulo Proveedor', 
-      descripcion: 'Administración de proveedores',
-      icono: '🚚'
-    },
-    { 
-      id: 'punto_venta', 
-      nombre: 'Módulo Punto de Venta', 
-      descripcion: 'Sistema de punto de venta',
-      icono: '💳'
-    },
-    { 
-      id: 'calendario', 
-      nombre: 'Módulo Calendario', 
-      descripcion: 'Gestión de calendarios y eventos',
-      icono: '📅'
-    },
-    { 
-      id: 'ciudad', 
-      nombre: 'Módulo Ciudad', 
-      descripcion: 'Administración de ciudades',
-      icono: '🏙️'
-    },
-    { 
-      id: 'marca', 
-      nombre: 'Módulo Marca', 
-      descripcion: 'Gestión de marcas',
-      icono: '🏷️'
-    },
-    { 
-      id: 'productos', 
-      nombre: 'Módulo Productos', 
-      descripcion: 'Catálogo de productos',
-      icono: '📦'
-    },
-    { 
-      id: 'combo', 
-      nombre: 'Módulo Combo', 
-      descripcion: 'Gestión de combos y paquetes',
-      icono: '🎁'
-    },
-    { 
-      id: 'reporte', 
-      nombre: 'Módulo Reporte', 
-      descripcion: 'Generación de reportes',
-      icono: '📊'
-    },
-    { 
-      id: 'correo', 
-      nombre: 'Módulo Correo', 
-      descripcion: 'Sistema de correo electrónico',
-      icono: '📧'
-    },
-    { 
-      id: 'tipo_producto', 
-      nombre: 'Módulo Tipo Producto', 
-      descripcion: 'Clasificación de tipos de productos',
-      icono: '🏷️'
-    }
-  ];
+  roles: Rol[] = [];
+  modulosDisponibles: Modulo[] = [];
 
-  // Lista de roles (simulados)
-  roles = [
-    { 
-      id: 1, 
-      nombre: 'ADMINISTRADOR', 
-      descripcion: 'Acceso completo al sistema',
-      permisos: ['usuario', 'perfil', 'factura', 'bodega', 'cliente', 'proveedor', 'punto_venta', 'calendario', 'ciudad', 'marca', 'productos', 'combo', 'reporte', 'correo', 'tipo_producto'],
-      estado: 'Activo',
-      fechaCreacion: '2024-01-15',
-      usuariosAsignados: 2
-    },
-    { 
-      id: 2, 
-      nombre: 'FACTURADOR', 
-      descripcion: 'Acceso a facturación y ventas',
-      permisos: ['cliente', 'factura', 'punto_venta', 'productos', 'reporte'],
-      estado: 'Activo',
-      fechaCreacion: '2024-01-16',
-      usuariosAsignados: 3
-    },
-    { 
-      id: 3, 
-      nombre: 'BODEGA', 
-      descripcion: 'Control de inventario y almacén',
-      permisos: ['bodega', 'productos', 'proveedor', 'marca', 'tipo_producto', 'reporte'],
-      estado: 'Activo',
-      fechaCreacion: '2024-01-17',
-      usuariosAsignados: 4
-    },
-    { 
-      id: 4, 
-      nombre: 'VENDEDOR', 
-      descripcion: 'Acceso a ventas y clientes',
-      permisos: ['cliente', 'punto_venta', 'productos', 'combo', 'reporte'],
-      estado: 'Activo',
-      fechaCreacion: '2024-01-18',
-      usuariosAsignados: 6
-    },
-    { 
-      id: 5, 
-      nombre: 'VENDEDOR 2', 
-      descripcion: 'Acceso limitado a ventas',
-      permisos: ['cliente', 'punto_venta', 'productos'],
-      estado: 'Activo',
-      fechaCreacion: '2024-01-19',
-      usuariosAsignados: 2
-    },
-    { 
-      id: 6, 
-      nombre: 'OPERARIO', 
-      descripcion: 'Acceso básico al sistema',
-      permisos: ['productos', 'bodega'],
-      estado: 'Activo',
-      fechaCreacion: '2024-01-20',
-      usuariosAsignados: 8
-    }
-  ];
+  cargando = false;
+  mensajeError: string | null = null;
+  mensajeExito: string | null = null;
 
-  // Método para crear rol (sin funcionalidad real)
-  crearRol() {
-    console.log('Nuevo rol:', this.nuevoRol);
-    // TODO: Implementar creación con FastAPI
-    alert('Funcionalidad de creación pendiente de implementar');
-  }
+  modoEdicion = false;
+  rolSeleccionadoId: number | null = null;
 
-  // Método para editar rol
-  editarRol(rol: any) {
-    console.log('Editando rol:', rol);
-    // TODO: Implementar edición
-    alert('Funcionalidad de edición pendiente de implementar');
-  }
-
-  // Método para eliminar rol (cambiar estado)
-  eliminarRol(rol: any) {
-    console.log('Eliminando rol:', rol);
-    // TODO: Implementar eliminación lógica (estado = 0)
-    alert('Funcionalidad de eliminación pendiente de implementar');
-  }
-
-  // Método para limpiar formulario
-  limpiarFormulario() {
-    this.nuevoRol = {
-      nombre: '',
-      descripcion: '',
-      permisos: {
-        ventas: false,
-        productos: false,
-        usuarios: false,
-        reportes: false,
-        roles: false
-      },
-      estado: '1'
-    };
-  }
-
-  // Método para seleccionar/deseleccionar todos los permisos
-  toggleTodosPermisos() {
-    const todosSeleccionados = Object.values(this.nuevoRol.permisos).every(p => p);
-    Object.keys(this.nuevoRol.permisos).forEach(key => {
-      (this.nuevoRol.permisos as any)[key] = !todosSeleccionados;
+  constructor(
+    private fb: FormBuilder,
+    private apiService: ApiService
+  ) {
+    this.rolForm = this.fb.group({
+      nombre: ['', [Validators.required, Validators.maxLength(100)]],
+      descripcion: ['', [Validators.maxLength(255)]],
+      estado: ['Activo', [Validators.required]],
+      modulos: this.fb.array([])
     });
   }
 
-  // Método para obtener el valor de un permiso
-  getPermisoValue(permisoId: string): boolean {
-    return (this.nuevoRol.permisos as any)[permisoId] || false;
+  ngOnInit(): void {
+    this.cargarModulos();
   }
 
-  // Método para establecer el valor de un permiso
-  setPermisoValue(permisoId: string, value: boolean) {
-    (this.nuevoRol.permisos as any)[permisoId] = value;
+  get nombre() {
+    return this.rolForm.get('nombre');
   }
 
-  // Método para verificar si un rol tiene un permiso específico
-  tienePermiso(rol: any, permiso: string): boolean {
-    return rol.permisos.includes(permiso);
+  get descripcion() {
+    return this.rolForm.get('descripcion');
   }
 
-  // Método para obtener el nombre del permiso
-  obtenerNombrePermiso(permisoId: string): string {
-    const permiso = this.permisosDisponibles.find(p => p.id === permisoId);
-    return permiso ? permiso.nombre : permisoId;
+  get estado() {
+    return this.rolForm.get('estado');
   }
 
-  // Método para obtener el icono del permiso
-  getPermisoIcono(permisoId: string): string {
-    const permiso = this.permisosDisponibles.find(p => p.id === permisoId);
-    return permiso ? permiso.icono : '❓';
+  get modulosFormArray(): FormArray<FormGroup> {
+    return this.rolForm.get('modulos') as FormArray<FormGroup>;
+  }
+
+  get modulosControles(): FormGroup[] {
+    return this.modulosFormArray.controls as FormGroup[];
+  }
+
+  cargarModulos(): void {
+    this.cargando = true;
+    this.apiService
+      .getModulosActivos()
+      .pipe(finalize(() => (this.cargando = false)))
+      .subscribe({
+        next: (modulos) => {
+          this.modulosDisponibles = modulos ?? [];
+          this._crearFormularioModulos();
+          this.cargarRoles();
+        },
+        error: (error) => {
+          console.error('Error al cargar módulos:', error);
+          this.mensajeError = 'No se pudieron cargar los módulos disponibles.';
+        }
+      });
+  }
+
+  cargarRoles(): void {
+    this.cargando = true;
+    this.mensajeError = null;
+
+    this.apiService
+      .getRoles()
+      .pipe(finalize(() => (this.cargando = false)))
+      .subscribe({
+        next: (roles) => {
+          this.roles = roles ?? [];
+        },
+        error: (error) => {
+          console.error('Error al cargar roles:', error);
+          if (error?.status === 404) {
+            this.roles = [];
+          } else {
+            this.mensajeError = 'No se pudieron cargar los roles. Intenta nuevamente.';
+          }
+        }
+      });
+  }
+
+  guardarRol(): void {
+    this.mensajeError = null;
+    this.mensajeExito = null;
+
+    if (this.rolForm.invalid) {
+      this.rolForm.markAllAsTouched();
+      return;
+    }
+
+    const modulosSeleccionados = this.modulosControles
+      .map(control => control.value as ModuloFormValue)
+      .filter(value => value.seleccionado)
+      .map(value => {
+        const permisos = this._obtenerPermisosDesdeFormulario(value);
+        return {
+          modulo_id: value.modulo_id,
+          permisos,
+          estado: value.estado ?? 'Activo'
+        };
+      });
+
+    const payload: Rol = {
+      nombre: this.nombre?.value.trim(),
+      descripcion: this.descripcion?.value?.trim() || '',
+      estado: this.estado?.value,
+      modulos: modulosSeleccionados
+    };
+
+    this.cargando = true;
+
+    if (this.modoEdicion && this.rolSeleccionadoId !== null) {
+      this.apiService
+        .actualizarRol(this.rolSeleccionadoId, payload)
+        .pipe(finalize(() => (this.cargando = false)))
+        .subscribe({
+          next: (respuesta) => {
+            this.mensajeExito = respuesta?.mensaje ?? 'Rol actualizado correctamente.';
+            this.cancelarEdicion();
+            this.cargarRoles();
+          },
+          error: (error) => {
+            console.error('Error al actualizar rol:', error);
+            this.mensajeError =
+              error?.error?.detail ?? 'No se pudo actualizar el rol. Intenta nuevamente.';
+          }
+        });
+    } else {
+      this.apiService
+        .crearRol(payload)
+        .pipe(finalize(() => (this.cargando = false)))
+        .subscribe({
+          next: (respuesta) => {
+            this.mensajeExito = respuesta?.mensaje ?? 'Rol creado correctamente.';
+            this.resetFormulario();
+            this.cargarRoles();
+          },
+          error: (error) => {
+            console.error('Error al crear rol:', error);
+            this.mensajeError =
+              error?.error?.detail ?? 'No se pudo crear el rol. Intenta nuevamente.';
+          }
+        });
+    }
+  }
+
+  editarRol(rol: Rol): void {
+    this.modoEdicion = true;
+    this.rolSeleccionadoId = rol.id ?? null;
+    this.mensajeExito = null;
+    this.mensajeError = null;
+
+    this.rolForm.patchValue({
+      nombre: rol.nombre,
+      descripcion: rol.descripcion ?? '',
+      estado: rol.estado ?? 'Activo'
+    });
+
+    this._aplicarModulosAlFormulario(rol.modulos ?? []);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  eliminarRol(rol: Rol): void {
+    if (rol.id == null) {
+      return;
+    }
+
+    const confirmado = window.confirm(`¿Deseas eliminar el rol "${rol.nombre}"?`);
+    if (!confirmado) {
+      return;
+    }
+
+    this.cargando = true;
+    this.mensajeError = null;
+    this.mensajeExito = null;
+
+    this.apiService
+      .eliminarRol(rol.id)
+      .pipe(finalize(() => (this.cargando = false)))
+      .subscribe({
+        next: (respuesta) => {
+          this.mensajeExito = respuesta?.mensaje ?? 'Rol eliminado correctamente.';
+          if (this.rolSeleccionadoId === rol.id) {
+            this.cancelarEdicion();
+          }
+          this.cargarRoles();
+        },
+        error: (error) => {
+          console.error('Error al eliminar rol:', error);
+          this.mensajeError =
+            error?.error?.detail ?? 'No se pudo eliminar el rol. Intenta nuevamente.';
+        }
+      });
+  }
+
+  cancelarEdicion(): void {
+    this.modoEdicion = false;
+    this.rolSeleccionadoId = null;
+    this.resetFormulario();
+  }
+
+  resetFormulario(): void {
+    this.rolForm.reset({
+      nombre: '',
+      descripcion: '',
+      estado: 'Activo'
+    });
+
+    this.modulosControles.forEach(control => {
+      control.patchValue({
+        seleccionado: false,
+        puede_ver: false,
+        puede_crear: false,
+        puede_editar: false,
+        puede_eliminar: false,
+        estado: 'Activo'
+      });
+    });
+
+    this.rolForm.markAsPristine();
+    this.rolForm.markAsUntouched();
+  }
+
+  obtenerResumenModulos(modulos: RolModulo[] | undefined): string {
+    if (!modulos || modulos.length === 0) {
+      return 'Sin módulos';
+    }
+    return modulos
+      .map(modulo => `${modulo.nombre_modulo ?? 'Módulo'} (${(modulo.permisos || []).join(', ') || 'ver'})`)
+      .join(' | ');
+  }
+
+  private _crearFormularioModulos(): void {
+    const modulosArray = this.modulosFormArray;
+    modulosArray.clear();
+
+    this.modulosDisponibles.forEach(modulo => {
+      modulosArray.push(
+        this.fb.group({
+          modulo_id: [modulo.id, Validators.required],
+          nombre_modulo: [modulo.nombre],
+          seleccionado: [false],
+          puede_ver: [false],
+          puede_crear: [false],
+          puede_editar: [false],
+          puede_eliminar: [false],
+          estado: ['Activo']
+        })
+      );
+    });
+  }
+
+  private _aplicarModulosAlFormulario(modulos: RolModulo[]): void {
+    const controles = this.modulosControles;
+    controles.forEach(control => {
+      const moduloAsignado = modulos.find(m => m.modulo_id === control.get('modulo_id')?.value);
+      if (moduloAsignado) {
+        const permisos = moduloAsignado.permisos ?? [];
+        control.patchValue({
+          seleccionado: true,
+          puede_ver: permisos.includes('ver') || permisos.length === 0,
+          puede_crear: permisos.includes('crear'),
+          puede_editar: permisos.includes('editar'),
+          puede_eliminar: permisos.includes('eliminar'),
+          estado: moduloAsignado.estado ?? 'Activo'
+        });
+      } else {
+        control.patchValue({
+          seleccionado: false,
+          puede_ver: false,
+          puede_crear: false,
+          puede_editar: false,
+          puede_eliminar: false,
+          estado: 'Activo'
+        });
+      }
+    });
+  }
+
+  private _obtenerPermisosDesdeFormulario(value: ModuloFormValue): string[] {
+    const permisos: string[] = [];
+    if (value.puede_ver) {
+      permisos.push('ver');
+    }
+    if (value.puede_crear) {
+      permisos.push('crear');
+    }
+    if (value.puede_editar) {
+      permisos.push('editar');
+    }
+    if (value.puede_eliminar) {
+      permisos.push('eliminar');
+    }
+
+    if (permisos.length === 0) {
+      permisos.push('ver');
+    }
+
+    return permisos;
   }
 }

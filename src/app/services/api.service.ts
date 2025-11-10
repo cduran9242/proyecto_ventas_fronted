@@ -6,17 +6,16 @@ import { map } from 'rxjs/operators';
 // Interfaces para tipado
 export interface Usuario {
   id?: number;
-  nombre: string;
-  apellido: string;
+  nombres: string;
+  apellidos: string;
   email: string;
-  telefono: string;
-  direccion?: string;
-  rol: string;
-  fechaNacimiento?: string;
-  genero?: string;
-  estado: number;
-  fechaCreacion?: string;
-  fechaActualizacion?: string;
+  telefono?: string;
+  cedula?: string;
+  contrasena?: string;
+  rol_id?: number;
+  estado?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Producto {
@@ -48,14 +47,24 @@ export interface Venta {
   fechaActualizacion?: string;
 }
 
+export interface RolModulo {
+  id?: number;
+  modulo_id: number;
+  nombre_modulo?: string;
+  permisos: string[];
+  estado: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Rol {
   id?: number;
   nombre: string;
   descripcion?: string;
-  permisos: string[];
-  estado: number;
-  fechaCreacion?: string;
-  fechaActualizacion?: string;
+  estado: string;
+  modulos?: RolModulo[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Modulo {
@@ -82,23 +91,35 @@ export class ApiService {
 
   // ========== USUARIOS ==========
   getUsuarios(): Observable<Usuario[]> {
-    return this.http.get<Usuario[]>(`${this.baseUrl}/usuarios/`);
+    return this.http
+      .get<{ resultado: Usuario[] }>(`${this.baseUrl}/get_users/`)
+      .pipe(map(response => response?.resultado ?? []));
   }
 
   getUsuario(id: number): Observable<Usuario> {
-    return this.http.get<Usuario>(`${this.baseUrl}/usuarios/${id}`);
+    return this.http.get<Usuario>(`${this.baseUrl}/get_user/${id}`);
   }
 
-  crearUsuario(usuario: Usuario): Observable<Usuario> {
-    return this.http.post<Usuario>(`${this.baseUrl}/usuarios/`, usuario, { headers: this.headers });
+  crearUsuario(usuario: Usuario): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(
+      `${this.baseUrl}/create_user`,
+      usuario,
+      { headers: this.headers }
+    );
   }
 
-  actualizarUsuario(id: number, usuario: Usuario): Observable<Usuario> {
-    return this.http.put<Usuario>(`${this.baseUrl}/usuarios/${id}`, usuario, { headers: this.headers });
+  actualizarUsuario(id: number, usuario: Usuario): Observable<{ mensaje: string }> {
+    return this.http.put<{ mensaje: string }>(
+      `${this.baseUrl}/update_user/${id}`,
+      usuario,
+      { headers: this.headers }
+    );
   }
 
-  eliminarUsuario(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/usuarios/${id}`);
+  eliminarUsuario(id: number): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(
+      `${this.baseUrl}/delete_user/${id}`
+    );
   }
 
   // ========== PRODUCTOS ==========
@@ -145,23 +166,35 @@ export class ApiService {
 
   // ========== ROLES ==========
   getRoles(): Observable<Rol[]> {
-    return this.http.get<Rol[]>(`${this.baseUrl}/roles/`);
+    return this.http
+      .get<{ resultado: Rol[] }>(`${this.baseUrl}/get_roles/`)
+      .pipe(map(response => response?.resultado ?? []));
   }
 
   getRol(id: number): Observable<Rol> {
-    return this.http.get<Rol>(`${this.baseUrl}/roles/${id}`);
+    return this.http.get<Rol>(`${this.baseUrl}/get_rol/${id}`);
   }
 
-  crearRol(rol: Rol): Observable<Rol> {
-    return this.http.post<Rol>(`${this.baseUrl}/roles/`, rol, { headers: this.headers });
+  crearRol(rol: Rol): Observable<{ mensaje: string; id: number }> {
+    return this.http.post<{ mensaje: string; id: number }>(
+      `${this.baseUrl}/create_rol`,
+      rol,
+      { headers: this.headers }
+    );
   }
 
-  actualizarRol(id: number, rol: Rol): Observable<Rol> {
-    return this.http.put<Rol>(`${this.baseUrl}/roles/${id}`, rol, { headers: this.headers });
+  actualizarRol(id: number, rol: Rol): Observable<{ mensaje: string }> {
+    return this.http.put<{ mensaje: string }>(
+      `${this.baseUrl}/update_rol/${id}`,
+      rol,
+      { headers: this.headers }
+    );
   }
 
-  eliminarRol(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/roles/${id}`);
+  eliminarRol(id: number): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(
+      `${this.baseUrl}/delete_rol/${id}`
+    );
   }
 
   // ========== MODULOS ==========

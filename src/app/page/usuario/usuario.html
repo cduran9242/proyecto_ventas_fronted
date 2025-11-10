@@ -6,31 +6,41 @@
 
   <!-- Formulario de nuevo usuario -->
   <div class="nuevo-usuario-section">
-    <h2>➕ Nuevo Usuario</h2>
-    <form class="usuario-form" (ngSubmit)="crearUsuario()">
+    <h2>{{ modoEdicion ? '✏️ Editar Usuario' : '➕ Nuevo Usuario' }}</h2>
+    <form class="usuario-form" [formGroup]="usuarioForm" (ngSubmit)="guardarUsuario()">
       <div class="form-grid">
         <div class="form-group">
-          <label for="nombre">Nombre:</label>
+          <label for="nombres">Nombres:</label>
           <input 
             type="text" 
-            id="nombre" 
-            [(ngModel)]="nuevoUsuario.nombre" 
-            name="nombre"
-            placeholder="Nombre del usuario"
-            required
+            id="nombres"
+            placeholder="Nombres completos"
+            formControlName="nombres"
+            [class.error]="nombres?.invalid && (nombres?.dirty || nombres?.touched)"
           >
+          <small *ngIf="nombres?.hasError('required') && (nombres?.dirty || nombres?.touched)">
+            Los nombres son obligatorios.
+          </small>
+          <small *ngIf="nombres?.hasError('maxlength') && (nombres?.dirty || nombres?.touched)">
+            Máximo 120 caracteres.
+          </small>
         </div>
 
         <div class="form-group">
-          <label for="apellido">Apellido:</label>
+          <label for="apellidos">Apellidos:</label>
           <input 
             type="text" 
-            id="apellido" 
-            [(ngModel)]="nuevoUsuario.apellido" 
-            name="apellido"
-            placeholder="Apellido del usuario"
-            required
+            id="apellidos"
+            placeholder="Apellidos del usuario"
+            formControlName="apellidos"
+            [class.error]="apellidos?.invalid && (apellidos?.dirty || apellidos?.touched)"
           >
+          <small *ngIf="apellidos?.hasError('required') && (apellidos?.dirty || apellidos?.touched)">
+            Los apellidos son obligatorios.
+          </small>
+          <small *ngIf="apellidos?.hasError('maxlength') && (apellidos?.dirty || apellidos?.touched)">
+            Máximo 120 caracteres.
+          </small>
         </div>
 
         <div class="form-group">
@@ -38,11 +48,16 @@
           <input 
             type="email" 
             id="email" 
-            [(ngModel)]="nuevoUsuario.email" 
-            name="email"
             placeholder="correo@ejemplo.com"
-            required
+            formControlName="email"
+            [class.error]="email?.invalid && (email?.dirty || email?.touched)"
           >
+          <small *ngIf="email?.hasError('required') && (email?.dirty || email?.touched)">
+            El correo es obligatorio.
+          </small>
+          <small *ngIf="email?.hasError('email') && (email?.dirty || email?.touched)">
+            Ingresa un correo válido.
+          </small>
         </div>
 
         <div class="form-group">
@@ -50,72 +65,106 @@
           <input 
             type="tel" 
             id="telefono" 
-            [(ngModel)]="nuevoUsuario.telefono" 
-            name="telefono"
             placeholder="3001234567"
-            required
+            formControlName="telefono"
+            [class.error]="telefono?.invalid && (telefono?.dirty || telefono?.touched)"
           >
+          <small *ngIf="telefono?.hasError('required') && (telefono?.dirty || telefono?.touched)">
+            El teléfono es obligatorio.
+          </small>
         </div>
 
         <div class="form-group">
-          <label for="direccion">Dirección:</label>
+          <label for="cedula">Cédula:</label>
           <input 
-            type="text" 
-            id="direccion" 
-            [(ngModel)]="nuevoUsuario.direccion" 
-            name="direccion"
-            placeholder="Dirección completa"
+            type="text"
+            id="cedula"
+            placeholder="Documento de identidad"
+            formControlName="cedula"
+            [class.error]="cedula?.invalid && (cedula?.dirty || cedula?.touched)"
           >
+          <small *ngIf="cedula?.hasError('required') && (cedula?.dirty || cedula?.touched)">
+            La cédula es obligatoria.
+          </small>
         </div>
 
         <div class="form-group">
-          <label for="rol">Rol:</label>
-          <select 
-            id="rol" 
-            [(ngModel)]="nuevoUsuario.rol" 
-            name="rol"
-            required
+          <label for="contrasena">Contraseña:</label>
+          <input
+            type="password"
+            id="contrasena"
+            placeholder="Contraseña temporal"
+            formControlName="contrasena"
+            [class.error]="contrasena?.invalid && (contrasena?.dirty || contrasena?.touched)"
           >
-            <option *ngFor="let rol of roles" [value]="rol.valor">
-              {{rol.texto}}
+          <small *ngIf="contrasena?.hasError('required') && (contrasena?.dirty || contrasena?.touched)">
+            La contraseña es obligatoria.
+          </small>
+          <small *ngIf="contrasena?.hasError('minlength') && (contrasena?.dirty || contrasena?.touched)">
+            Debe tener al menos 6 caracteres.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="rol_id">Rol:</label>
+          <select 
+            id="rol_id"
+            formControlName="rol_id"
+            [class.error]="rol_id?.invalid && (rol_id?.dirty || rol_id?.touched)"
+          >
+            <option value="" disabled>Seleccione un rol</option>
+            <option *ngFor="let rol of roles" [value]="rol.id">
+              {{rol.nombre}}
             </option>
           </select>
+          <small *ngIf="rol_id?.hasError('required') && (rol_id?.dirty || rol_id?.touched)">
+            El rol es obligatorio.
+          </small>
         </div>
 
         <div class="form-group">
-          <label for="fechaNacimiento">Fecha de Nacimiento:</label>
-          <input 
-            type="date" 
-            id="fechaNacimiento" 
-            [(ngModel)]="nuevoUsuario.fechaNacimiento" 
-            name="fechaNacimiento"
+          <label for="estado">Estado:</label>
+          <select
+            id="estado"
+            formControlName="estado"
+            [class.error]="estado?.invalid && (estado?.dirty || estado?.touched)"
           >
-        </div>
-
-        <div class="form-group">
-          <label for="genero">Género:</label>
-          <select 
-            id="genero" 
-            [(ngModel)]="nuevoUsuario.genero" 
-            name="genero"
-          >
-            <option *ngFor="let genero of generos" [value]="genero.valor">
-              {{genero.texto}}
+            <option *ngFor="let estadoOption of estados" [value]="estadoOption.valor">
+              {{estadoOption.texto}}
             </option>
           </select>
+          <small *ngIf="estado?.hasError('required') && (estado?.dirty || estado?.touched)">
+            Selecciona un estado.
+          </small>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-crear">✅ Crear Usuario</button>
-        <button type="button" class="btn-limpiar" (click)="limpiarFormulario()">🧹 Limpiar</button>
+        <button type="submit" class="btn-crear" [disabled]="cargando">
+          {{ modoEdicion ? '💾 Guardar cambios' : '✅ Crear Usuario' }}
+        </button>
+        <button type="button" class="btn-limpiar" (click)="modoEdicion ? cancelarEdicion() : resetFormulario()" [disabled]="cargando">
+          {{ modoEdicion ? '↩️ Cancelar edición' : '🧹 Limpiar' }}
+        </button>
       </div>
     </form>
+
+    <div class="feedback">
+      <div class="alert success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+      <div class="alert error" *ngIf="mensajeError">{{ mensajeError }}</div>
+    </div>
   </div>
 
   <!-- Lista de usuarios -->
   <div class="usuarios-lista-section">
     <h2>📋 Lista de Usuarios</h2>
+
+    <div class="tabla-toolbar">
+      <button class="btn-refrescar" type="button" (click)="cargarUsuarios()" [disabled]="cargando">
+        🔄 Actualizar
+      </button>
+    </div>
+
     <div class="tabla-container">
       <table class="tabla-usuarios">
         <thead>
@@ -124,6 +173,7 @@
             <th>Nombre Completo</th>
             <th>Email</th>
             <th>Teléfono</th>
+            <th>Cédula</th>
             <th>Rol</th>
             <th>Estado</th>
             <th>Fecha Creación</th>
@@ -131,17 +181,24 @@
           </tr>
         </thead>
         <tbody>
+          <tr *ngIf="cargando">
+            <td colspan="9" class="loading-row">Cargando usuarios...</td>
+          </tr>
+          <tr *ngIf="!cargando && usuarios.length === 0">
+            <td colspan="9" class="empty-row">No hay usuarios registrados.</td>
+          </tr>
           <tr *ngFor="let usuario of usuarios">
             <td>{{usuario.id}}</td>
-            <td>{{usuario.nombre}} {{usuario.apellido}}</td>
+            <td>{{usuario.nombres}} {{usuario.apellidos}}</td>
             <td>{{usuario.email}}</td>
             <td>{{usuario.telefono}}</td>
+            <td>{{usuario.cedula}}</td>
             <td>
               <span class="rol-badge" 
-                    [class.admin]="usuario.rol === 'Administrador'"
-                    [class.vendedor]="usuario.rol === 'Vendedor'"
-                    [class.cliente]="usuario.rol === 'Cliente'">
-                {{usuario.rol}}
+                    [class.admin]="obtenerNombreRol(usuario.rol_id) === 'Administrador'"
+                    [class.vendedor]="obtenerNombreRol(usuario.rol_id) === 'Operador'"
+                    [class.cliente]="obtenerNombreRol(usuario.rol_id) === 'Auditor'">
+                {{obtenerNombreRol(usuario.rol_id)}}
               </span>
             </td>
             <td>
@@ -151,9 +208,8 @@
                 {{usuario.estado}}
               </span>
             </td>
-            <td>{{usuario.fechaCreacion}}</td>
+            <td>{{usuario.created_at | date:'short'}}</td>
             <td>
-              <button class="btn-ver" (click)="editarUsuario(usuario)">👁️ Ver</button>
               <button class="btn-editar" (click)="editarUsuario(usuario)">✏️ Editar</button>
               <button class="btn-eliminar" (click)="eliminarUsuario(usuario)">🗑️ Eliminar</button>
             </td>

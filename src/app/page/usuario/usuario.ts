@@ -1,112 +1,255 @@
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
+
+import { ApiService, Usuario } from '../../services/api.service';
+
+interface RolOption {
+  id: number;
+  nombre: string;
+}
 
 @Component({
   selector: 'app-usuario',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './usuario.html',
   styleUrl: './usuario.css'
 })
-export class Usuario {
-  // Formulario de nuevo usuario
-  nuevoUsuario = {
-    nombre: '',
-    apellido: '',
-    email: '',
-    telefono: '',
-    direccion: '',
-    rol: '',
-    fechaNacimiento: '',
-    genero: '',
-    estado: '1'
-  };
+export class UsuarioPage implements OnInit {
+  usuarioForm: FormGroup;
+  usuarios: Usuario[] = [];
 
-  // Lista de roles disponibles
-  roles = [
-    { valor: '', texto: 'Seleccionar rol' },
-    { valor: 'admin', texto: 'Administrador' },
-    { valor: 'vendedor', texto: 'Vendedor' },
-    { valor: 'cliente', texto: 'Cliente' },
-    { valor: 'inventario', texto: 'Inventario' }
+  cargando = false;
+  mensajeError: string | null = null;
+  mensajeExito: string | null = null;
+
+  modoEdicion = false;
+  usuarioSeleccionadoId: number | null = null;
+
+  roles: RolOption[] = [
+    { id: 1, nombre: 'Administrador' },
+    { id: 2, nombre: 'Operador' },
+    { id: 3, nombre: 'Auditor' }
   ];
 
-  // Lista de géneros
-  generos = [
-    { valor: '', texto: 'Seleccionar género' },
-    { valor: 'M', texto: 'Masculino' },
-    { valor: 'F', texto: 'Femenino' },
-    { valor: 'O', texto: 'Otro' }
+  estados = [
+    { valor: 'Activo', texto: 'Activo' },
+    { valor: 'Inactivo', texto: 'Inactivo' }
   ];
 
-  // Lista de usuarios (simulados)
-  usuarios = [
-    { 
-      id: 1, 
-      nombre: 'Juan', 
-      apellido: 'Pérez', 
-      email: 'juan.perez@email.com', 
-      telefono: '3001234567',
-      rol: 'Administrador',
-      estado: 'Activo',
-      fechaCreacion: '2024-01-15'
-    },
-    { 
-      id: 2, 
-      nombre: 'María', 
-      apellido: 'García', 
-      email: 'maria.garcia@email.com', 
-      telefono: '3007654321',
-      rol: 'Vendedor',
-      estado: 'Activo',
-      fechaCreacion: '2024-01-16'
-    },
-    { 
-      id: 3, 
-      nombre: 'Carlos', 
-      apellido: 'López', 
-      email: 'carlos.lopez@email.com', 
-      telefono: '3009876543',
-      rol: 'Cliente',
-      estado: 'Inactivo',
-      fechaCreacion: '2024-01-17'
+  constructor(
+    private fb: FormBuilder,
+    private apiService: ApiService
+  ) {
+    this.usuarioForm = this.fb.group({
+      nombres: ['', [Validators.required, Validators.maxLength(120)]],
+      apellidos: ['', [Validators.required, Validators.maxLength(120)]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
+      telefono: ['', [Validators.required, Validators.maxLength(30)]],
+      cedula: ['', [Validators.required, Validators.maxLength(20)]],
+      contrasena: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(255)]],
+      rol_id: ['', [Validators.required]],
+      estado: ['Activo', [Validators.required]]
+    });
+  }
+
+  ngOnInit(): void {
+    this.cargarUsuarios();
+  }
+
+  get nombres() {
+    return this.usuarioForm.get('nombres');
+  }
+
+  get apellidos() {
+    return this.usuarioForm.get('apellidos');
+  }
+
+  get email() {
+    return this.usuarioForm.get('email');
+  }
+
+  get telefono() {
+    return this.usuarioForm.get('telefono');
+  }
+
+  get cedula() {
+    return this.usuarioForm.get('cedula');
+  }
+
+  get contrasena() {
+    return this.usuarioForm.get('contrasena');
+  }
+
+  get rol_id() {
+    return this.usuarioForm.get('rol_id');
+  }
+
+  get estado() {
+    return this.usuarioForm.get('estado');
+  }
+
+  cargarUsuarios(): void {
+    this.cargando = true;
+    this.mensajeError = null;
+
+    this.apiService
+      .getUsuarios()
+      .pipe(finalize(() => (this.cargando = false)))
+      .subscribe({
+        next: (usuarios) => {
+          this.usuarios = usuarios ?? [];
+        },
+        error: (error) => {
+          console.error('Error al cargar usuarios:', error);
+          if (error?.status === 404) {
+            this.usuarios = [];
+          } else {
+            this.mensajeError = 'No se pudieron cargar los usuarios. Intenta nuevamente.';
+          }
+        }
+      });
+  }
+
+  guardarUsuario(): void {
+    this.mensajeError = null;
+    this.mensajeExito = null;
+
+    if (this.usuarioForm.invalid) {
+      this.usuarioForm.markAllAsTouched();
+      return;
     }
-  ];
 
-  // Método para crear usuario (sin funcionalidad real)
-  crearUsuario() {
-    console.log('Nuevo usuario:', this.nuevoUsuario);
-    // TODO: Implementar creación con FastAPI
-    alert('Funcionalidad de creación pendiente de implementar');
+    const payload: Usuario = {
+      nombres: this.nombres?.value.trim(),
+      apellidos: this.apellidos?.value.trim(),
+      email: this.email?.value.trim(),
+      telefono: this.telefono?.value.trim(),
+      cedula: this.cedula?.value.trim(),
+      contrasena: this.contrasena?.value,
+      rol_id: Number(this.rol_id?.value),
+      estado: this.estado?.value
+    };
+
+    this.cargando = true;
+
+    if (this.modoEdicion && this.usuarioSeleccionadoId !== null) {
+      this.apiService
+        .actualizarUsuario(this.usuarioSeleccionadoId, payload)
+        .pipe(finalize(() => (this.cargando = false)))
+        .subscribe({
+          next: (respuesta) => {
+            this.mensajeExito = (respuesta as any)?.mensaje ?? 'Usuario actualizado correctamente.';
+            this.cancelarEdicion();
+            this.cargarUsuarios();
+          },
+          error: (error) => {
+            console.error('Error al actualizar usuario:', error);
+            this.mensajeError =
+              error?.error?.detail ?? 'No se pudo actualizar el usuario. Intenta nuevamente.';
+          }
+        });
+    } else {
+      this.apiService
+        .crearUsuario(payload)
+        .pipe(finalize(() => (this.cargando = false)))
+        .subscribe({
+          next: (respuesta) => {
+            this.mensajeExito = (respuesta as any)?.mensaje ?? 'Usuario creado correctamente.';
+            this.resetFormulario();
+            this.cargarUsuarios();
+          },
+          error: (error) => {
+            console.error('Error al crear usuario:', error);
+            this.mensajeError =
+              error?.error?.detail ?? 'No se pudo crear el usuario. Intenta nuevamente.';
+          }
+        });
+    }
   }
 
-  // Método para editar usuario
-  editarUsuario(usuario: any) {
-    console.log('Editando usuario:', usuario);
-    // TODO: Implementar edición
-    alert('Funcionalidad de edición pendiente de implementar');
+  editarUsuario(usuario: Usuario): void {
+    this.modoEdicion = true;
+    this.usuarioSeleccionadoId = usuario.id ?? null;
+    this.mensajeError = null;
+    this.mensajeExito = null;
+
+    this.usuarioForm.setValue({
+      nombres: usuario.nombres,
+      apellidos: usuario.apellidos,
+      email: usuario.email,
+      telefono: usuario.telefono ?? '',
+      cedula: usuario.cedula ?? '',
+      contrasena: usuario.contrasena ?? '',
+      rol_id: usuario.rol_id ?? '',
+      estado: usuario.estado ?? 'Activo'
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Método para eliminar usuario (cambiar estado)
-  eliminarUsuario(usuario: any) {
-    console.log('Eliminando usuario:', usuario);
-    // TODO: Implementar eliminación lógica (estado = 0)
-    alert('Funcionalidad de eliminación pendiente de implementar');
+  cancelarEdicion(): void {
+    this.modoEdicion = false;
+    this.usuarioSeleccionadoId = null;
+    this.resetFormulario();
   }
 
-  // Método para limpiar formulario
-  limpiarFormulario() {
-    this.nuevoUsuario = {
-      nombre: '',
-      apellido: '',
+  eliminarUsuario(usuario: Usuario): void {
+    if (usuario.id == null) {
+      return;
+    }
+
+    const confirmado = window.confirm(
+      `¿Confirma eliminar el usuario "${usuario.nombres} ${usuario.apellidos}"?`);
+
+    if (!confirmado) {
+      return;
+    }
+
+    this.cargando = true;
+    this.mensajeError = null;
+    this.mensajeExito = null;
+
+    this.apiService
+      .eliminarUsuario(usuario.id)
+      .pipe(finalize(() => (this.cargando = false)))
+      .subscribe({
+        next: (respuesta) => {
+          this.mensajeExito = (respuesta as any)?.mensaje ?? 'Usuario eliminado correctamente.';
+          if (this.usuarioSeleccionadoId === usuario.id) {
+            this.cancelarEdicion();
+          }
+          this.cargarUsuarios();
+        },
+        error: (error) => {
+          console.error('Error al eliminar usuario:', error);
+          this.mensajeError =
+            error?.error?.detail ?? 'No se pudo eliminar el usuario. Intenta nuevamente.';
+        }
+      });
+  }
+
+  resetFormulario(): void {
+    this.usuarioForm.reset({
+      nombres: '',
+      apellidos: '',
       email: '',
       telefono: '',
-      direccion: '',
-      rol: '',
-      fechaNacimiento: '',
-      genero: '',
-      estado: '1'
-    };
+      cedula: '',
+      contrasena: '',
+      rol_id: '',
+      estado: 'Activo'
+    });
+    this.usuarioForm.markAsPristine();
+    this.usuarioForm.markAsUntouched();
+  }
+
+  obtenerNombreRol(rolId: number | null | undefined): string {
+    if (rolId == null) {
+      return '—';
+    }
+    return this.roles.find(rol => rol.id === rolId)?.nombre ?? `Rol ${rolId}`;
   }
 }
