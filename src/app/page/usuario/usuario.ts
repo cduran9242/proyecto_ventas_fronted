@@ -28,11 +28,7 @@ export class UsuarioPage implements OnInit {
   modoEdicion = false;
   usuarioSeleccionadoId: number | null = null;
 
-  roles: RolOption[] = [
-    { id: 1, nombre: 'Administrador' },
-    { id: 2, nombre: 'Operador' },
-    { id: 3, nombre: 'Auditor' }
-  ];
+  roles: RolOption[] = [];
 
   estados = [
     { valor: 'Activo', texto: 'Activo' },
@@ -57,6 +53,7 @@ export class UsuarioPage implements OnInit {
 
   ngOnInit(): void {
     this.cargarUsuarios();
+    this.cargarRoles();
   }
 
   get nombres() {
@@ -251,5 +248,20 @@ export class UsuarioPage implements OnInit {
       return '—';
     }
     return this.roles.find(rol => rol.id === rolId)?.nombre ?? `Rol ${rolId}`;
+  }
+
+  private cargarRoles(): void {
+    this.apiService.getRoles().subscribe({
+      next: (roles) => {
+        this.roles = (roles ?? []).map(rol => ({
+          id: rol.id ?? 0,
+          nombre: rol.nombre ?? `Rol ${rol.id}`
+        }));
+      },
+      error: (error) => {
+        console.error('Error al cargar roles:', error);
+        this.roles = [];
+      }
+    });
   }
 }

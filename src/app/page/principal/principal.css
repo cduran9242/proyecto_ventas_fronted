@@ -101,6 +101,24 @@
   line-height: 1.5;
 }
 
+.module-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.action-badge {
+  background: #e2e8f0;
+  color: #1f2937;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
 .module-link {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;

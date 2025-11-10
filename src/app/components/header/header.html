@@ -1,3 +1,16 @@
 <header class="header">
-  <h4>Sistema de Ventas</h4>
+  <div class="header-title">
+    <span class="logo">🧩</span>
+    <h4>Sistema de Ventas</h4>
+  </div>
+
+  <div class="header-actions" *ngIf="session as sesion">
+    <div class="user-info">
+      <span class="user-name">{{ sesion.usuario.nombres }} {{ sesion.usuario.apellidos }}</span>
+      <span class="user-role">{{ sesion.rol.nombre }}</span>
+    </div>
+    <button class="btn-logout" type="button" (click)="logout()">
+      Cerrar sesión
+    </button>
+  </div>
 </header>

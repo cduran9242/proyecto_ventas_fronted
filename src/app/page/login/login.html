@@ -23,36 +23,51 @@
       
       <h2 class="form-title">Iniciar Sesión</h2>
       
-      <form class="login-form" (ngSubmit)="ingresar()">
+      <form class="login-form" [formGroup]="loginForm" (ngSubmit)="ingresar()">
         <div class="form-group">
           <input 
             type="email" 
-            id="usuario" 
-            name="usuario" 
-            [(ngModel)]="usuario" 
-            required 
+            id="email"
+            formControlName="email"
             placeholder="Correo Electrónico"
             class="form-input"
+            [class.error]="email?.invalid && (email?.dirty || email?.touched)"
           >
+          <small *ngIf="email?.hasError('required') && (email?.dirty || email?.touched)">
+            El correo electrónico es obligatorio.
+          </small>
+          <small *ngIf="email?.hasError('email') && (email?.dirty || email?.touched)">
+            Ingresa un correo electrónico válido.
+          </small>
         </div>
         
         <div class="form-group">
           <input 
             type="password" 
-            id="password" 
-            name="password" 
-            [(ngModel)]="password" 
-            required 
+            id="password"
+            formControlName="password"
             placeholder="Contraseña"
             class="form-input"
+            [class.error]="password?.invalid && (password?.dirty || password?.touched)"
           >
+          <small *ngIf="password?.hasError('required') && (password?.dirty || password?.touched)">
+            La contraseña es obligatoria.
+          </small>
+          <small *ngIf="password?.hasError('minlength') && (password?.dirty || password?.touched)">
+            Debe tener al menos 4 caracteres.
+          </small>
         </div>
         
-        <button type="submit" class="btn-continue">
-          <span>LOGIN</span>
+        <button type="submit" class="btn-continue" [disabled]="cargando">
+          <span *ngIf="!cargando">LOGIN</span>
+          <span *ngIf="cargando">Autenticando...</span>
           <span class="btn-arrow">→</span>
         </button>
       </form>
+
+      <div class="feedback" *ngIf="mensajeError">
+        <div class="alert error">{{ mensajeError }}</div>
+      </div>
     </div>
   </div>
 </div>

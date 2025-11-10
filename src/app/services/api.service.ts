@@ -51,6 +51,9 @@ export interface RolModulo {
   id?: number;
   modulo_id: number;
   nombre_modulo?: string;
+  descripcion?: string;
+  icono?: string;
+  ruta?: string;
   permisos: string[];
   estado: string;
   created_at?: string;
@@ -65,6 +68,17 @@ export interface Rol {
   modulos?: RolModulo[];
   created_at?: string;
   updated_at?: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  usuario: Usuario;
+  rol: Rol;
+  modulos: RolModulo[];
 }
 
 export interface Modulo {
@@ -247,8 +261,10 @@ export class ApiService {
   }
 
   // ========== AUTENTICACIÓN (Para implementar en el futuro) ==========
-  login(credenciales: { usuario: string; password: string }): Observable<any> {
-    return this.http.post(`${this.baseUrl}/auth/login`, credenciales, { headers: this.headers });
+  login(credenciales: LoginCredentials): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, credenciales, {
+      headers: this.headers
+    });
   }
 
   logout(): Observable<any> {
