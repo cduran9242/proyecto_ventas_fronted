@@ -157,6 +157,10 @@
   margin-top: 6px;
 }
 
+.form-group small.hint {
+  color: #64748b;
+}
+
 .feedback {
   display: flex;
   flex-direction: column;

@@ -100,8 +100,14 @@
             formControlName="contrasena"
             [class.error]="contrasena?.invalid && (contrasena?.dirty || contrasena?.touched)"
           >
+          <small class="hint" *ngIf="!modoEdicion">
+            Ingresa una contraseña temporal para el nuevo usuario.
+          </small>
+          <small class="hint" *ngIf="modoEdicion">
+            Deja este campo en blanco si no deseas cambiar la contraseña.
+          </small>
           <small *ngIf="contrasena?.hasError('required') && (contrasena?.dirty || contrasena?.touched)">
-            La contraseña es obligatoria.
+            La contraseña es obligatoria al crear un usuario.
           </small>
           <small *ngIf="contrasena?.hasError('minlength') && (contrasena?.dirty || contrasena?.touched)">
             Debe tener al menos 6 caracteres.

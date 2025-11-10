@@ -52,7 +52,7 @@ export class UsuarioPage implements OnInit, OnDestroy {
       email: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
       telefono: ['', [Validators.required, Validators.maxLength(30)]],
       cedula: ['', [Validators.required, Validators.maxLength(20)]],
-      contrasena: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(255)]],
+      contrasena: ['', [Validators.minLength(6), Validators.maxLength(255)]],
       rol_id: ['', [Validators.required]],
       estado: ['Activo', [Validators.required]]
     });
@@ -144,16 +144,27 @@ export class UsuarioPage implements OnInit, OnDestroy {
     this.mensajeError = null;
     this.mensajeExito = null;
 
+    const contrasenaValor = (this.contrasena?.value ?? '').trim();
+
+    if (!this.modoEdicion && contrasenaValor.length === 0) {
+      this.contrasena?.setErrors({ required: true });
+      this.contrasena?.markAsTouched();
+      return;
+    }
+
     const payload: Usuario = {
       nombres: this.nombres?.value.trim(),
       apellidos: this.apellidos?.value.trim(),
       email: this.email?.value.trim(),
       telefono: this.telefono?.value.trim(),
       cedula: this.cedula?.value.trim(),
-      contrasena: this.contrasena?.value,
       rol_id: Number(this.rol_id?.value),
       estado: this.estado?.value
     };
+
+    if (contrasenaValor.length > 0) {
+      payload.contrasena = contrasenaValor;
+    }
 
     this.cargando = true;
 
@@ -208,7 +219,7 @@ export class UsuarioPage implements OnInit, OnDestroy {
       email: usuario.email,
       telefono: usuario.telefono ?? '',
       cedula: usuario.cedula ?? '',
-      contrasena: usuario.contrasena ?? '',
+      contrasena: '',
       rol_id: usuario.rol_id ?? '',
       estado: usuario.estado ?? 'Activo'
     });
