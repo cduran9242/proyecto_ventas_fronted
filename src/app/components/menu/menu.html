@@ -7,15 +7,8 @@
 
   <div class="menu-overlay" [class.active]="menuAbierto" (click)="cerrarMenu()"></div>
 
-  <div class="menu-header">
-    <a class="menu-brand" routerLink="/principal" (click)="cerrarMenu()">
-      <span class="brand-icon">🏠</span>
-      <span class="brand-text">Panel Principal</span>
-    </a>
-  </div>
-
   <ul class="menu-list" [class.active]="menuAbierto">
-    <li *ngFor="let item of menuItems" class="menu-item">
+    <li *ngFor="let item of baseItems" class="menu-item">
       <a
         [routerLink]="item.ruta"
         routerLinkActive="active"
@@ -23,9 +16,62 @@
         (click)="cerrarMenu()"
         class="menu-link"
         [title]="item.descripcion">
-        <span class="menu-icon">{{ item.icono }}</span>
         <span class="menu-text">{{ item.texto }}</span>
       </a>
     </li>
+
+    <ng-container *ngFor="let node of menuTree">
+      <ng-container
+        [ngTemplateOutlet]="renderNode"
+        [ngTemplateOutletContext]="{ $implicit: node, nivel: 1 }">
+      </ng-container>
+    </ng-container>
   </ul>
 </nav>
+
+<ng-template #renderNode let-node let-nivel="nivel">
+  <li
+    class="menu-item"
+    [class.menu-group]="node.hijos?.length"
+    (mouseleave)="collapseNode(node)">
+    <div
+      class="menu-node"
+      [style.paddingLeft.px]="nivel * 14"
+      (mouseenter)="expandNode(node)">
+      <button
+        *ngIf="node.hijos?.length"
+        type="button"
+        class="menu-node__toggle"
+        (click)="toggleNode(node, $event)"
+        (mouseenter)="expandNode(node)"
+        [attr.aria-expanded]="isExpanded(node)">
+        <span class="chevron">{{ isExpanded(node) ? '▼' : '▶' }}</span>
+      </button>
+
+      <ng-container *ngIf="puedeNavegar(node); else menuLabel">
+        <a
+          [routerLink]="resolverRuta(node)"
+          routerLinkActive="active"
+          (click)="cerrarMenu()"
+          class="menu-link"
+          [title]="node.descripcion ?? node.nombre">
+          <span class="menu-text">{{ node.nombre }}</span>
+        </a>
+      </ng-container>
+      <ng-template #menuLabel>
+        <div class="menu-label">
+          <span class="menu-text">{{ node.nombre }}</span>
+        </div>
+      </ng-template>
+    </div>
+
+    <ul *ngIf="node.hijos?.length && isExpanded(node)">
+      <ng-container *ngFor="let child of node.hijos">
+        <ng-container
+          [ngTemplateOutlet]="renderNode"
+          [ngTemplateOutletContext]="{ $implicit: child, nivel: nivel + 1 }">
+        </ng-container>
+      </ng-container>
+    </ul>
+  </li>
+</ng-template>

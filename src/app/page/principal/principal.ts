@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { AuthService, SessionData } from '../../services/auth.service';
-import { RolModulo } from '../../services/api.service';
+import { MenuItemNode } from '../../services/api.service';
 
 interface ModuloTarjeta {
   titulo: string;
@@ -63,7 +63,8 @@ export class PrincipalComponent implements OnInit, OnDestroy {
   }
 
   private mapearModulos(session: SessionData | null): ModuloTarjeta[] {
-    const modulos = session?.modulos ?? [];
+    const menu = session?.menu ?? [];
+    const modulos = this.obtenerNivelUno(menu);
     if (!modulos.length) {
       return [
         {
@@ -76,39 +77,46 @@ export class PrincipalComponent implements OnInit, OnDestroy {
       ];
     }
 
-    return modulos.map(modulo => {
-      const ruta = this.resolverRuta(modulo);
-      return {
-        titulo: modulo.nombre_modulo ?? `Módulo ${modulo.modulo_id}`,
-        descripcion: modulo.descripcion ?? 'Módulo del sistema',
-        icono: this.obtenerIcono(modulo.nombre_modulo),
-        ruta,
-        acciones: modulo.permisos ?? ['ver']
-      };
-    });
+    return modulos
+      .filter(modulo => !!this.resolverRuta(modulo))
+      .map(modulo => {
+        const ruta = this.resolverRuta(modulo) ?? '/principal';
+        return {
+          titulo: modulo.nombre ?? `Módulo ${modulo.id}`,
+          descripcion: modulo.descripcion ?? 'Módulo del sistema',
+          icono: this.obtenerIcono(modulo.nombre),
+          ruta,
+          acciones: modulo.permisos ?? ['ver']
+        };
+      });
   }
 
-  private resolverRuta(modulo: RolModulo): string {
-    const nombre = modulo.nombre_modulo?.toLowerCase() ?? '';
-    const ruta = (modulo.ruta ?? '').toLowerCase();
-
-    if (ruta.includes('usuario') || nombre.includes('usuario')) {
-      return '/usuario';
-    }
-    if (ruta.includes('venta') || nombre.includes('comercial') || nombre.includes('venta')) {
-      return '/ventas';
-    }
-    if (ruta.includes('inventario') || nombre.includes('inventario')) {
-      return '/productos';
-    }
-    if (ruta.includes('rol') || ruta.includes('admin') || nombre.includes('administr')) {
-      return '/roles';
-    }
-    if (ruta.includes('reporte') || nombre.includes('reporte')) {
-      return '/reportes';
+  private resolverRuta(modulo: MenuItemNode): string {
+    const rawRoute = modulo.ruta?.trim();
+    if (rawRoute) {
+      const normalizada = rawRoute.startsWith('/') ? rawRoute : `/${rawRoute}`;
+      return normalizada.toLowerCase();
     }
 
-    const rutaNormalizada = modulo.ruta ?? '/principal';
-    return rutaNormalizada.startsWith('/') ? rutaNormalizada : `/${rutaNormalizada}`;
+    const nombre = modulo.nombre?.toLowerCase() ?? '';
+
+    if (nombre.includes('usuario')) return '/usuario';
+    if (nombre.includes('comercial') || nombre.includes('venta')) return '/ventas';
+    if (nombre.includes('inventario')) return '/productos';
+    if (nombre.includes('rol') || nombre.includes('adminis')) return '/roles';
+    if (nombre.includes('reporte')) return '/reportes';
+
+    return '';
+  }
+
+  private obtenerNivelUno(nodos: MenuItemNode[]): MenuItemNode[] {
+    return nodos
+      .filter(node => node.nivel === 1 || !node.parent_id)
+      .sort((a, b) => {
+        if (a.orden !== b.orden) {
+          return a.orden - b.orden;
+        }
+        return a.nombre.localeCompare(b.nombre);
+      });
   }
 }

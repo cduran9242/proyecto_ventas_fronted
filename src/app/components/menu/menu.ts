@@ -1,38 +1,41 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { AuthService, SessionData } from '../../services/auth.service';
-import { RolModulo } from '../../services/api.service';
+import { MenuItemNode } from '../../services/api.service';
 
-interface MenuItem {
+type MenuItem = {
   ruta: string;
-  icono: string;
   texto: string;
   descripcion: string;
   exact?: boolean;
-}
+};
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, NgFor, NgIf, RouterModule],
   templateUrl: './menu.html',
   styleUrl: './menu.css'
 })
 export class MenuComponent implements OnInit, OnDestroy {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
   private sessionSub?: Subscription;
 
   menuAbierto = false;
 
-  menuItems: MenuItem[] = [];
+  baseItems: MenuItem[] = [];
+  menuTree: MenuItemNode[] = [];
+  private expandedNodes = new Set<number>();
+  private lockedExpanded = new Set<number>();
 
   ngOnInit(): void {
     this.sessionSub = this.authService.session$.subscribe(session => {
-      this.menuItems = this.generarMenu(session);
+      this.actualizarMenu(session);
     });
+    this.actualizarMenu(this.authService.getSession());
   }
 
   ngOnDestroy(): void {
@@ -47,84 +50,91 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.menuAbierto = false;
   }
 
-  private generarMenu(session: SessionData | null): MenuItem[] {
-    const baseItems: MenuItem[] = [
+  isExpanded(node: MenuItemNode): boolean {
+    return this.expandedNodes.has(node.id);
+  }
+
+  toggleNode(node: MenuItemNode, event?: MouseEvent): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (this.expandedNodes.has(node.id)) {
+      this.expandedNodes.delete(node.id);
+      this.lockedExpanded.delete(node.id);
+    } else {
+      this.expandedNodes.add(node.id);
+    }
+  }
+
+  expandNode(node: MenuItemNode): void {
+    this.expandedNodes.add(node.id);
+  }
+
+  collapseNode(node: MenuItemNode): void {
+    if (this.lockedExpanded.has(node.id)) {
+      return;
+    }
+    this.expandedNodes.delete(node.id);
+  }
+
+  puedeNavegar(node: MenuItemNode): boolean {
+    const ruta = this.resolverRuta(node);
+    return !!ruta && (node.permisos ?? []).includes('ver');
+  }
+
+  resolverRuta(node: MenuItemNode): string | null {
+    const rawRoute = node.ruta?.trim();
+    if (rawRoute) {
+      return rawRoute.startsWith('/') ? rawRoute : `/${rawRoute}`;
+    }
+    return null;
+  }
+
+  private actualizarMenu(session: SessionData | null): void {
+    this.baseItems = [
       {
         ruta: '/principal',
-        icono: '🏠',
-        texto: 'Principal',
+        texto: 'Home',
         descripcion: 'Panel principal del sistema',
         exact: true
-      },
-      {
-        ruta: '/inicio',
-        icono: '📌',
-        texto: 'Inicio',
-        descripcion: 'Información general del proyecto'
       }
     ];
 
-    if (!session) {
-      return baseItems;
+    if (session?.rol?.nombre?.toLowerCase().includes('admin')) {
+      this.baseItems.push({
+        ruta: '/menu-config',
+        texto: 'Configurar menú',
+        descripcion: 'Administración de rutas y accesos'
+      });
     }
 
-    const modulos = session.modulos ?? [];
-    const rutasBase = new Set(baseItems.map(item => item.ruta));
-    const modulosMenu = modulos
-      .map(modulo => {
-        const ruta = this.resolverRuta(modulo);
-        return {
-          ruta,
-          icono: this.obtenerIcono(modulo),
-          texto: modulo.nombre_modulo ?? `Módulo ${modulo.modulo_id}`,
-          descripcion: modulo.descripcion ?? 'Módulo del sistema'
-        } as MenuItem;
+    this.menuTree = this.construirArbol(session?.menu ?? []);
+    this.expandedNodes.clear();
+    this.lockedExpanded.clear();
+  }
+
+  private construirArbol(nodos: MenuItemNode[]): MenuItemNode[] {
+    return nodos
+      .map(node => ({
+        ...node,
+        hijos: this.construirArbol(node.hijos ?? [])
+      }))
+      .filter(node => {
+        const puedeVer = (node.permisos ?? []).includes('ver');
+        return puedeVer || (node.hijos ?? []).length > 0;
       })
-      .filter(item => !rutasBase.has(item.ruta));
-
-    return [...baseItems, ...modulosMenu];
+      .sort((a, b) => {
+        if (a.orden !== b.orden) {
+          return a.orden - b.orden;
+        }
+        return a.nombre.localeCompare(b.nombre);
+      });
   }
 
-  private obtenerIcono(modulo: RolModulo): string {
-    return modulo.icono ?? this.obtenerIconoPorNombre(modulo.nombre_modulo);
-  }
-
-  private obtenerIconoPorNombre(nombre?: string): string {
-    if (!nombre) {
-      return '🧩';
+  private autoExpand(nodos: MenuItemNode[]): void {
+    for (const nodo of nodos) {
+      if ((nodo.hijos ?? []).length) {
+        this.autoExpand(nodo.hijos ?? []);
+      }
     }
-    const normalized = nombre.toLowerCase();
-    if (normalized.includes('usuario')) return '👥';
-    if (normalized.includes('venta')) return '💰';
-    if (normalized.includes('producto')) return '📦';
-    if (normalized.includes('reporte')) return '📊';
-    if (normalized.includes('inventario')) return '🏬';
-    if (normalized.includes('logística') || normalized.includes('logistica')) return '🚚';
-    if (normalized.includes('administración') || normalized.includes('administracion')) return '🛠️';
-    return '🧩';
-  }
-
-  private resolverRuta(modulo: RolModulo): string {
-    const nombre = modulo.nombre_modulo?.toLowerCase() ?? '';
-    const ruta = (modulo.ruta ?? '').toLowerCase();
-
-    if (ruta.includes('usuario') || nombre.includes('usuario')) {
-      return '/usuario';
-    }
-    if (ruta.includes('venta') || nombre.includes('comercial') || nombre.includes('venta')) {
-      return '/ventas';
-    }
-    if (ruta.includes('inventario') || nombre.includes('inventario')) {
-      return '/productos';
-    }
-    if (ruta.includes('rol') || ruta.includes('admin') || nombre.includes('administr')) {
-      return '/roles';
-    }
-    if (ruta.includes('reporte') || nombre.includes('reporte')) {
-      return '/reportes';
-    }
-
-    const rutaNormalizada = modulo.ruta ?? '/principal';
-    return rutaNormalizada.startsWith('/') ? rutaNormalizada : `/${rutaNormalizada}`;
   }
 }

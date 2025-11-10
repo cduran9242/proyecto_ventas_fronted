@@ -43,6 +43,16 @@
   font-size: 1.5rem;
 }
 
+.nuevo-usuario-section .notice {
+  margin: -10px 0 10px;
+  padding: 10px 15px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px dashed rgba(148, 163, 184, 0.6);
+  color: #475569;
+  font-size: 0.9rem;
+}
+
 .usuario-form {
   display: flex;
   flex-direction: column;

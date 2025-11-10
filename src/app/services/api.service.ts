@@ -47,15 +47,41 @@ export interface Venta {
   fechaActualizacion?: string;
 }
 
-export interface RolModulo {
+export interface MenuItemNode {
+  id: number;
+  modulo_id?: number;
+  parent_id?: number;
+  nombre: string;
+  descripcion?: string;
+  ruta?: string;
+  icono?: string;
+  tipo?: string;
+  nivel: number;
+  orden: number;
+  estado: string;
+  permisos?: string[];
+  hijos?: MenuItemNode[];
+}
+
+export interface RolModuloAsignado {
   id?: number;
   modulo_id: number;
   nombre_modulo?: string;
   descripcion?: string;
   icono?: string;
   ruta?: string;
+  permisos?: string[];
+  estado?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface RolMenuItemAsignado {
+  id?: number;
+  menu_item_id: number;
+  nombre_menu?: string;
+  ruta?: string;
   permisos: string[];
-  estado: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -65,7 +91,9 @@ export interface Rol {
   nombre: string;
   descripcion?: string;
   estado: string;
-  modulos?: RolModulo[];
+  modulos?: RolModuloAsignado[];
+  menu_items?: RolMenuItemAsignado[];
+  menu?: MenuItemNode[];
   created_at?: string;
   updated_at?: string;
 }
@@ -78,7 +106,8 @@ export interface LoginCredentials {
 export interface LoginResponse {
   usuario: Usuario;
   rol: Rol;
-  modulos: RolModulo[];
+  modulos?: MenuItemNode[];
+  menu?: MenuItemNode[];
 }
 
 export interface Modulo {
@@ -89,6 +118,26 @@ export interface Modulo {
   estado: string;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface MenuItemPayload {
+  nombre: string;
+  descripcion?: string;
+  ruta?: string;
+  icono?: string;
+  tipo?: string;
+  modulo_id?: number;
+  parent_id?: number;
+  orden?: number;
+  estado?: string;
+}
+
+export interface MenuAssignmentPayload {
+  rol_id: number;
+  puede_ver: boolean;
+  puede_crear: boolean;
+  puede_editar: boolean;
+  puede_eliminar: boolean;
 }
 
 @Injectable({
@@ -260,7 +309,49 @@ export class ApiService {
     return this.http.get<any[]>(url);
   }
 
-  // ========== AUTENTICACIÓN (Para implementar en el futuro) ==========
+  // ========== MENÚ ==========
+  getMenuTree(): Observable<MenuItemNode[]> {
+    return this.http
+      .get<MenuItemNode[]>(`${this.baseUrl}/menu/tree`);
+  }
+
+  getMenuTreeByRole(rolId: number): Observable<MenuItemNode[]> {
+    return this.http.get<MenuItemNode[]>(`${this.baseUrl}/menu/tree/${rolId}`);
+  }
+
+  listMenuItems(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/menu/items`);
+  }
+
+  createMenuItem(payload: MenuItemPayload): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(
+      `${this.baseUrl}/menu/items`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  updateMenuItem(id: number, payload: MenuItemPayload): Observable<{ mensaje: string }> {
+    return this.http.put<{ mensaje: string }>(
+      `${this.baseUrl}/menu/items/${id}`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  deleteMenuItem(id: number): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(`${this.baseUrl}/menu/items/${id}`);
+  }
+
+  assignMenuItem(id: number, payload: MenuAssignmentPayload): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(
+      `${this.baseUrl}/menu/items/${id}/assign`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  // ========== AUTENTICACIÓN ==========
   login(credenciales: LoginCredentials): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.baseUrl}/auth/login`, credenciales, {
       headers: this.headers

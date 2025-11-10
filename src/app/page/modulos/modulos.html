@@ -26,6 +26,9 @@
         <p class="form-subtitle">
           Completa los datos para {{ modoEdicion ? 'actualizar' : 'crear' }} un módulo. Todos los campos son obligatorios.
         </p>
+        <p class="form-warning" *ngIf="!permiteCrear && !permiteEditar">
+          Este rol solo puede visualizar la información de módulos; el formulario está bloqueado.
+        </p>
       </div>
 
       <form [formGroup]="moduloForm" (ngSubmit)="guardarModulo()">
@@ -99,14 +102,14 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn primary" [disabled]="cargando">
+          <button type="submit" class="btn primary" [disabled]="cargando || (!permiteCrear && !permiteEditar)">
             {{ modoEdicion ? 'Actualizar módulo' : 'Crear módulo' }}
           </button>
           <button
             type="button"
             class="btn secondary"
             (click)="modoEdicion ? cancelarEdicion() : resetFormulario()"
-            [disabled]="cargando"
+            [disabled]="cargando || (!permiteCrear && !permiteEditar)"
           >
             {{ modoEdicion ? 'Cancelar edición' : 'Limpiar formulario' }}
           </button>
@@ -173,10 +176,10 @@
                 {{ modulo.updated_at ? (modulo.updated_at | date : 'short') : '—' }}
               </td>
               <td class="actions-column">
-                <button type="button" class="btn small ghost" (click)="editarModulo(modulo)">
+                <button type="button" class="btn small ghost" (click)="editarModulo(modulo)" *ngIf="permiteEditar">
                   ✏️ Editar
                 </button>
-                <button type="button" class="btn small danger" (click)="confirmarEliminar(modulo)">
+                <button type="button" class="btn small danger" (click)="confirmarEliminar(modulo)" *ngIf="permiteEliminar">
                   🗑️ Eliminar
                 </button>
               </td>

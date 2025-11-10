@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
+import { MenuItemNode } from '../../services/api.service';
 
 @Component({
   selector: 'app-login',
@@ -56,12 +57,7 @@ export class LoginComponent {
         next: (response) => {
           this.cargando = false;
 
-          const modulos = response?.modulos ?? [];
-          const rutaDestino = modulos.length
-            ? this.resolverRuta(modulos[0])
-            : '/principal';
-
-          this.router.navigate([rutaDestino]);
+          this.router.navigate(['/principal']);
         },
         error: (error) => {
           this.cargando = false;
@@ -75,27 +71,7 @@ export class LoginComponent {
       });
   }
 
-  private resolverRuta(modulo: { ruta?: string; nombre_modulo?: string }): string {
-    const nombre = modulo.nombre_modulo?.toLowerCase() ?? '';
-    const ruta = (modulo.ruta ?? '').toLowerCase();
-
-    if (ruta.includes('usuario') || nombre.includes('usuario')) {
-      return '/usuario';
-    }
-    if (ruta.includes('venta') || nombre.includes('comercial') || nombre.includes('venta')) {
-      return '/ventas';
-    }
-    if (ruta.includes('inventario') || nombre.includes('inventario')) {
-      return '/productos';
-    }
-    if (ruta.includes('rol') || ruta.includes('admin') || nombre.includes('administr')) {
-      return '/roles';
-    }
-    if (ruta.includes('reporte') || nombre.includes('reporte')) {
-      return '/reportes';
-    }
-
-    const rutaNormalizada = modulo.ruta ?? '/principal';
-    return rutaNormalizada.startsWith('/') ? rutaNormalizada : `/${rutaNormalizada}`;
+  private buscarPrimeraRuta(_: MenuItemNode[]): string | null {
+    return '/principal';
   }
 }

@@ -8,6 +8,7 @@ import { Productos } from './page/productos/productos';
 import { Reportes } from './page/reportes/reportes';
 import { RolesPage } from './page/roles/roles';
 import { Modulos } from './page/modulos/modulos';
+import { MenuConfigPage } from './page/menu-config/menu-config';
 import { Notfound } from './page/notfound/notfound';
 import { authGuard } from './guards/auth.guard';
 
@@ -61,6 +62,12 @@ export const routes: Routes = [
       component: RolesPage,
       canActivate: [authGuard],
       data: {breadcrumb: ['Administración', 'Roles y permisos']}
+    },
+    {
+      path: 'menu-config',
+      component: MenuConfigPage,
+      canActivate: [authGuard],
+      data: {breadcrumb: ['Administración', 'Configurar menú']}
     },
     {path: '**', component: Notfound, data: {breadcrumb: ['Error', 'No encontrado']}}
 ];

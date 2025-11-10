@@ -1,0 +1,208 @@
+<div class="menu-config-container">
+  <header class="menu-config-header">
+    <div>
+      <h1>⚙️ Configuración dinámica del menú</h1>
+      <p>
+        Gestiona la jerarquía de módulos y asigna permisos hasta cinco niveles de profundidad.
+      </p>
+    </div>
+    <button class="refresh-button" type="button" (click)="cargarMenu()" [disabled]="cargandoMenu || cargandoAccion">
+      ⟳ Actualizar árbol
+    </button>
+  </header>
+
+  <section class="alert-section" *ngIf="mensajeError || mensajeExito">
+    <div *ngIf="mensajeError" class="alert error">{{ mensajeError }}</div>
+    <div *ngIf="mensajeExito" class="alert success">{{ mensajeExito }}</div>
+  </section>
+
+  <section *ngIf="!esAdmin" class="alert warning">
+    No cuentas con permisos para acceder a esta sección. Contacta a un administrador.
+  </section>
+
+  <div class="menu-config-grid" *ngIf="esAdmin">
+    <section class="card">
+      <div class="card-header">
+        <h2>{{ editando ? '✏️ Editar elemento del menú' : '➕ Crear elemento del menú' }}</h2>
+        <button *ngIf="editando" type="button" class="ghost" (click)="cancelarEdicion()" [disabled]="cargandoAccion">
+          Cancelar edición
+        </button>
+      </div>
+      <form [formGroup]="itemForm" (ngSubmit)="guardarMenuItem()" class="form-grid">
+        <label>
+          Nombre *
+          <input type="text" formControlName="nombre" placeholder="Ej. Pedidos" />
+          <small *ngIf="itemForm.get('nombre')?.hasError('required') && itemForm.get('nombre')?.touched">
+            El nombre es obligatorio.
+          </small>
+        </label>
+
+        <label>
+          Descripción
+          <input type="text" formControlName="descripcion" placeholder="Descripción breve" />
+        </label>
+
+        <label>
+          Ruta (Angular)
+          <select formControlName="ruta">
+            <option value="">Sin ruta asociada</option>
+            <option *ngFor="let ruta of rutasDisponibles" [value]="ruta">
+              {{ ruta }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Ícono
+          <input type="text" formControlName="icono" placeholder="Emoji o clase CSS" />
+        </label>
+
+        <label>
+          Tipo
+          <select formControlName="tipo">
+            <option value="pagina">Página</option>
+            <option value="dashboard">Dashboard</option>
+            <option value="acción">Acción</option>
+            <option value="reporte">Reporte</option>
+          </select>
+        </label>
+
+        <label>
+          Módulo principal
+          <select formControlName="modulo_id">
+            <option [ngValue]="null">Sin módulo asociado</option>
+            <option *ngFor="let modulo of modulos" [value]="modulo.id">
+              {{ modulo.nombre }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Padre en el menú
+          <select formControlName="parent_id">
+            <option [ngValue]="null">Nivel raíz</option>
+            <option
+              *ngFor="let option of menuOptions"
+              [value]="option.id"
+              [disabled]="esOpcionBloqueada(option.id)">
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Orden
+          <input type="number" formControlName="orden" min="0" />
+        </label>
+
+        <label>
+          Estado
+          <select formControlName="estado">
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit" class="primary" [disabled]="cargandoAccion">
+            {{ editando ? 'Actualizar elemento' : 'Guardar elemento' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>🛡️ Asignar permisos por rol</h2>
+      <form [formGroup]="assignmentForm" (ngSubmit)="asignarPermisos()" class="form-grid">
+        <label>
+          Rol *
+          <select formControlName="rol_id">
+            <option value="" disabled>Selecciona un rol</option>
+            <option *ngFor="let rol of roles" [value]="rol.id">{{ rol.nombre }}</option>
+          </select>
+        </label>
+
+        <label>
+          Elemento de menú *
+          <select formControlName="menu_item_id">
+            <option value="" disabled>Selecciona un elemento</option>
+            <option *ngFor="let option of menuOptions" [value]="option.id">
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+
+        <div class="permisos-checkbox">
+          <label>
+            <input type="checkbox" formControlName="puede_ver" />
+            Ver
+          </label>
+          <label>
+            <input type="checkbox" formControlName="puede_crear" />
+            Crear
+          </label>
+          <label>
+            <input type="checkbox" formControlName="puede_editar" />
+            Editar
+          </label>
+          <label>
+            <input type="checkbox" formControlName="puede_eliminar" />
+            Eliminar
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="primary" [disabled]="cargandoAccion">
+            Guardar permisos
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <section class="card tree-card" *ngIf="esAdmin">
+    <div class="tree-header">
+      <h2>🌳 Jerarquía actual</h2>
+      <span *ngIf="cargandoMenu" class="loading">Cargando...</span>
+    </div>
+    <div class="tree-container" *ngIf="menuTree.length; else noMenu">
+      <ul class="tree-root">
+        <ng-container *ngFor="let node of menuTree">
+          <ng-template [ngTemplateOutlet]="renderNode" [ngTemplateOutletContext]="{ $implicit: node }"></ng-template>
+        </ng-container>
+      </ul>
+    </div>
+    <ng-template #noMenu>
+      <p class="empty-state">No hay elementos registrados en el menú.</p>
+    </ng-template>
+  </section>
+</div>
+
+<ng-template #renderNode let-node>
+  <li>
+    <div class="tree-node" [class.editing]="elementoEditandoId === node.id">
+      <span class="tree-icon">{{ node.icono || '🧩' }}</span>
+      <div class="tree-content">
+        <strong>{{ node.nombre }}</strong>
+        <small *ngIf="node.ruta">Ruta: {{ node.ruta }}</small>
+        <small *ngIf="node.permisos?.length">
+          Permisos: {{ node.permisos.join(', ') }}
+        </small>
+      </div>
+      <div class="tree-actions">
+        <button type="button" class="btn-icon" (click)="iniciarEdicion(node)" [disabled]="cargandoAccion">
+          ✏️
+        </button>
+        <button type="button" class="btn-icon danger" (click)="eliminarElemento(node)" [disabled]="cargandoAccion">
+          🗑️
+        </button>
+      </div>
+    </div>
+    <ul *ngIf="node.hijos?.length">
+      <ng-container *ngFor="let child of node.hijos">
+        <ng-template [ngTemplateOutlet]="renderNode" [ngTemplateOutletContext]="{ $implicit: child }"></ng-template>
+      </ng-container>
+    </ul>
+  </li>
+</ng-template>
+

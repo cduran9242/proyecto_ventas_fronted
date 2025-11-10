@@ -7,6 +7,9 @@
   <!-- Formulario de nuevo usuario -->
   <div class="nuevo-usuario-section">
     <h2>{{ modoEdicion ? '✏️ Editar Usuario' : '➕ Nuevo Usuario' }}</h2>
+    <p class="notice" *ngIf="!permiteCrear && !permiteEditar">
+      Este rol sólo tiene permiso de lectura. Los campos están bloqueados.
+    </p>
     <form class="usuario-form" [formGroup]="usuarioForm" (ngSubmit)="guardarUsuario()">
       <div class="form-grid">
         <div class="form-group">
@@ -140,10 +143,15 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-crear" [disabled]="cargando">
+        <button type="submit" class="btn-crear" [disabled]="cargando || (!permiteCrear && !permiteEditar)">
           {{ modoEdicion ? '💾 Guardar cambios' : '✅ Crear Usuario' }}
         </button>
-        <button type="button" class="btn-limpiar" (click)="modoEdicion ? cancelarEdicion() : resetFormulario()" [disabled]="cargando">
+        <button
+          type="button"
+          class="btn-limpiar"
+          (click)="modoEdicion ? cancelarEdicion() : resetFormulario()"
+          [disabled]="cargando || (!permiteCrear && !permiteEditar)"
+        >
           {{ modoEdicion ? '↩️ Cancelar edición' : '🧹 Limpiar' }}
         </button>
       </div>
@@ -210,8 +218,8 @@
             </td>
             <td>{{usuario.created_at | date:'short'}}</td>
             <td>
-              <button class="btn-editar" (click)="editarUsuario(usuario)">✏️ Editar</button>
-              <button class="btn-eliminar" (click)="eliminarUsuario(usuario)">🗑️ Eliminar</button>
+              <button class="btn-editar" (click)="editarUsuario(usuario)" *ngIf="permiteEditar">✏️ Editar</button>
+              <button class="btn-eliminar" (click)="eliminarUsuario(usuario)" *ngIf="permiteEliminar">🗑️ Eliminar</button>
             </td>
           </tr>
         </tbody>

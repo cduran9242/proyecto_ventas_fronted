@@ -1,115 +1,101 @@
 <div class="roles-container">
-  <div class="roles-header">
-    <h1>Gestión de Roles y Permisos</h1>
-    <p>Configura los roles del sistema y asigna los módulos y acciones que pueden realizar.</p>
-  </div>
+  <section class="roles-header">
+    <div>
+      <h1>Gestión de Roles y Accesos</h1>
+      <p>Define los roles del sistema y asigna los elementos del menú con los permisos que corresponde.</p>
+    </div>
+    <button class="refresh-button" type="button" (click)="cargarRoles()" [disabled]="cargando">
+      🔄 Recargar roles
+    </button>
+  </section>
 
-  <div class="nuevo-rol-section">
-    <div class="form-header">
+  <section class="roles-form-card">
+    <header class="roles-form-header">
       <div>
         <h2>{{ modoEdicion ? 'Editar rol' : 'Registrar nuevo rol' }}</h2>
-        <p>
-          Define el rol y selecciona los módulos a los que tendrá acceso.
-        </p>
+        <p>{{ modoEdicion ? 'Actualiza la información y permisos del rol seleccionado.' : 'Crea un rol y define los accesos al menú.' }}</p>
       </div>
-      <div class="user-icon">🛡️</div>
-    </div>
+      <span class="roles-form-icon">{{ modoEdicion ? '✏️' : '🛡️' }}</span>
+    </header>
 
-    <form class="rol-form" [formGroup]="rolForm" (ngSubmit)="guardarRol()">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="nombre">Nombre del rol</label>
+    <form [formGroup]="rolForm" (ngSubmit)="guardarRol()" class="roles-form">
+      <div class="roles-form-grid">
+        <label>
+          Nombre del rol *
           <input
-            id="nombre"
             type="text"
-            placeholder="Ej: Administrador, Facturador"
+            placeholder="Ej: Comercial, Auditor"
             formControlName="nombre"
             [class.error]="nombre?.invalid && (nombre?.dirty || nombre?.touched)"
           />
-          <small *ngIf="nombre?.hasError('required') && (nombre?.dirty || nombre?.touched)">
-            El nombre es obligatorio.
-          </small>
-          <small *ngIf="nombre?.hasError('maxlength') && (nombre?.dirty || nombre?.touched)">
-            Máximo 100 caracteres.
-          </small>
-        </div>
+          <small *ngIf="nombre?.hasError('required') && (nombre?.dirty || nombre?.touched)">El nombre es obligatorio.</small>
+          <small *ngIf="nombre?.hasError('maxlength') && (nombre?.dirty || nombre?.touched)">Máximo 100 caracteres.</small>
+        </label>
 
-        <div class="form-group">
-          <label for="estado">Estado</label>
-          <select
-            id="estado"
-            formControlName="estado"
-            [class.error]="estado?.invalid && (estado?.dirty || estado?.touched)"
-          >
+        <label>
+          Estado
+          <select formControlName="estado">
             <option value="Activo">Activo</option>
             <option value="Inactivo">Inactivo</option>
           </select>
-        </div>
+        </label>
       </div>
 
-      <div class="form-group">
-        <label for="descripcion">Descripción</label>
+      <label class="roles-field">
+        Descripción
         <textarea
-          id="descripcion"
           rows="3"
-          placeholder="Describe las responsabilidades o alcance de este rol"
+          placeholder="Describe el alcance del rol"
           formControlName="descripcion"
           [class.error]="descripcion?.invalid && (descripcion?.dirty || descripcion?.touched)"
         ></textarea>
-        <small *ngIf="descripcion?.hasError('maxlength') && (descripcion?.dirty || descripcion?.touched)">
-          Máximo 255 caracteres.
-        </small>
-      </div>
+        <small *ngIf="descripcion?.hasError('maxlength') && (descripcion?.dirty || descripcion?.touched)">Máximo 255 caracteres.</small>
+      </label>
 
-      <section class="permisos-section">
-        <header class="permisos-header">
-          <h3>Módulos disponibles</h3>
-          <p>Selecciona los módulos y define los permisos por acción.</p>
+      <section class="menu-permisos-section" [class.disabled]="!permiteCrear && !permiteEditar">
+        <header>
+          <div>
+            <h3>Elementos del menú</h3>
+            <p>Marca los permisos de cada elemento. Si asignas crear/editar/eliminar, el permiso "ver" se habilita automáticamente.</p>
+          </div>
+          <button
+            type="button"
+            class="ghost"
+            *ngIf="modoEdicion"
+            (click)="resetFormulario()"
+            [disabled]="cargando || !permiteEditar"
+          >
+            Limpiar selección
+          </button>
         </header>
 
-        <div class="permisos-grid" formArrayName="modulos">
-          <div
-            class="modulo-card"
-            *ngFor="let moduloCtrl of modulosControles; let i = index"
-            [formGroupName]="i"
-          >
-            <div class="modulo-header">
-              <label>
-                <input type="checkbox" formControlName="seleccionado" />
-                <span>{{ moduloCtrl.get('nombre_modulo')?.value }}</span>
-              </label>
-              <span class="modulo-estado" [class.inactivo]="moduloCtrl.get('estado')?.value === 'Inactivo'">
-                {{ moduloCtrl.get('estado')?.value }}
-              </span>
-            </div>
-
-            <div class="modulo-permisos" *ngIf="moduloCtrl.get('seleccionado')?.value">
-              <label>
-                <input type="checkbox" formControlName="puede_ver" />
-                Ver
-              </label>
-              <label>
-                <input type="checkbox" formControlName="puede_crear" />
-                Crear
-              </label>
-              <label>
-                <input type="checkbox" formControlName="puede_editar" />
-                Editar
-              </label>
-              <label>
-                <input type="checkbox" formControlName="puede_eliminar" />
-                Eliminar
-              </label>
-            </div>
-          </div>
+        <div class="menu-tree" *ngIf="menuTreeForm.length; else menuVacio">
+          <ng-container *ngFor="let nodo of menuTreeForm">
+            <ng-container
+              [ngTemplateOutlet]="renderNode"
+              [ngTemplateOutletContext]="{ $implicit: nodo, nivel: 0 }"
+            ></ng-container>
+          </ng-container>
         </div>
+        <ng-template #menuVacio>
+          <p class="empty-row">No hay elementos de menú disponibles. Configúralos primero en "Configurar menú".</p>
+        </ng-template>
       </section>
 
-      <div class="form-actions">
-        <button type="submit" class="btn-registrar" [disabled]="cargando">
+      <div class="roles-form-actions">
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="cargando || (!permiteCrear && !permiteEditar)"
+        >
           {{ modoEdicion ? '💾 Guardar cambios' : '✅ Registrar rol' }}
         </button>
-        <button type="button" class="btn-nuevo" (click)="modoEdicion ? cancelarEdicion() : resetFormulario()" [disabled]="cargando">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="modoEdicion ? cancelarEdicion() : resetFormulario()"
+          [disabled]="cargando || (!permiteCrear && !permiteEditar)"
+        >
           {{ modoEdicion ? '↩️ Cancelar edición' : '🧹 Limpiar' }}
         </button>
       </div>
@@ -119,15 +105,18 @@
       <div class="alert success" *ngIf="mensajeExito">{{ mensajeExito }}</div>
       <div class="alert error" *ngIf="mensajeError">{{ mensajeError }}</div>
     </div>
-  </div>
+  </section>
 
-  <div class="roles-lista-section">
-    <div class="lista-header">
-      <h2>Roles configurados</h2>
-      <button class="btn-refrescar" type="button" (click)="cargarRoles()" [disabled]="cargando">
-        🔄 Actualizar
+  <section class="roles-table-card">
+    <header class="lista-header">
+      <div>
+        <h2>Roles configurados</h2>
+        <p>Revisa los roles existentes y sus accesos.</p>
+      </div>
+      <button class="ghost" type="button" (click)="cargarRoles()" [disabled]="cargando">
+        🔁 Actualizar
       </button>
-    </div>
+    </header>
 
     <div class="tabla-container">
       <table class="tabla-roles">
@@ -135,7 +124,7 @@
           <tr>
             <th>Rol</th>
             <th>Descripción</th>
-            <th>Módulos asignados</th>
+            <th>Accesos al menú</th>
             <th>Estado</th>
             <th>Creado</th>
             <th>Acciones</th>
@@ -145,33 +134,24 @@
           <tr *ngIf="cargando">
             <td colspan="6" class="loading-row">Cargando roles...</td>
           </tr>
-
           <tr *ngIf="!cargando && roles.length === 0">
             <td colspan="6" class="empty-row">No hay roles registrados todavía.</td>
           </tr>
-
           <tr *ngFor="let rol of roles" [class.selected]="rolSeleccionadoId === rol.id">
             <td class="perfil-nombre">{{ rol.nombre }}</td>
             <td class="descripcion-cell">{{ rol.descripcion || '—' }}</td>
-            <td>
-              <div class="permisos-badges">
-                <span class="permiso-badge" *ngFor="let modulo of rol.modulos">
-                  {{ modulo.nombre_modulo || ('Módulo ' + modulo.modulo_id) }}
-                  <small>({{ (modulo.permisos || []).join(', ') || 'ver' }})</small>
-                </span>
-              </div>
-            </td>
+            <td class="menu-resumen">{{ obtenerResumenMenu(rol.menu_items) }}</td>
             <td>
               <span class="estado-badge" [class.activo]="rol.estado === 'Activo'" [class.inactivo]="rol.estado !== 'Activo'">
                 {{ rol.estado }}
               </span>
             </td>
-            <td>{{ rol.created_at | date:'short' }}</td>
+            <td>{{ rol.created_at | date: 'short' }}</td>
             <td>
-              <button class="btn-editar" type="button" (click)="editarRol(rol)">
+              <button class="btn-editar" type="button" (click)="editarRol(rol)" *ngIf="permiteEditar">
                 ✏️ Editar
               </button>
-              <button class="btn-eliminar" type="button" (click)="eliminarRol(rol)">
+              <button class="btn-eliminar" type="button" (click)="eliminarRol(rol)" *ngIf="permiteEliminar">
                 🗑️ Eliminar
               </button>
             </td>
@@ -179,5 +159,38 @@
         </tbody>
       </table>
     </div>
-  </div>
+  </section>
 </div>
+
+<ng-template #renderNode let-node let-nivel="nivel">
+  <div class="menu-node" [style.paddingLeft.px]="nivel * 16">
+    <div class="menu-info">
+      <span class="menu-name">{{ node.nombre ?? ('Elemento ' + node.id) }}</span>
+      <small *ngIf="node.ruta">{{ node.ruta }}</small>
+    </div>
+    <div class="menu-checks">
+      <label>
+        <input type="checkbox" [checked]="node.ver" (change)="onPermisoChange(node, 'ver', $event.target.checked)" [disabled]="!permiteCrear && !permiteEditar" />
+        Ver
+      </label>
+      <label>
+        <input type="checkbox" [checked]="node.crear" (change)="onPermisoChange(node, 'crear', $event.target.checked)" [disabled]="!permiteCrear && !permiteEditar" />
+        Crear
+      </label>
+      <label>
+        <input type="checkbox" [checked]="node.editar" (change)="onPermisoChange(node, 'editar', $event.target.checked)" [disabled]="!permiteCrear && !permiteEditar" />
+        Editar
+      </label>
+      <label>
+        <input type="checkbox" [checked]="node.eliminar" (change)="onPermisoChange(node, 'eliminar', $event.target.checked)" [disabled]="!permiteCrear && !permiteEditar" />
+        Eliminar
+      </label>
+    </div>
+  </div>
+  <ng-container *ngFor="let child of node.hijos">
+    <ng-container
+      [ngTemplateOutlet]="renderNode"
+      [ngTemplateOutletContext]="{ $implicit: child, nivel: nivel + 1 }"
+    ></ng-container>
+  </ng-container>
+</ng-template>

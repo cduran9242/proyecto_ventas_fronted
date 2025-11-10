@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 import { ApiService, Usuario } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 interface RolOption {
   id: number;
@@ -17,7 +19,7 @@ interface RolOption {
   templateUrl: './usuario.html',
   styleUrl: './usuario.css'
 })
-export class UsuarioPage implements OnInit {
+export class UsuarioPage implements OnInit, OnDestroy {
   usuarioForm: FormGroup;
   usuarios: Usuario[] = [];
 
@@ -29,6 +31,10 @@ export class UsuarioPage implements OnInit {
   usuarioSeleccionadoId: number | null = null;
 
   roles: RolOption[] = [];
+  permiteCrear = false;
+  permiteEditar = false;
+  permiteEliminar = false;
+  private sessionSub?: Subscription;
 
   estados = [
     { valor: 'Activo', texto: 'Activo' },
@@ -37,7 +43,8 @@ export class UsuarioPage implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private authService: AuthService
   ) {
     this.usuarioForm = this.fb.group({
       nombres: ['', [Validators.required, Validators.maxLength(120)]],
@@ -52,8 +59,18 @@ export class UsuarioPage implements OnInit {
   }
 
   ngOnInit(): void {
+    this.establecerPermisos();
+    this.actualizarEstadoFormulario();
+    this.sessionSub = this.authService.session$.subscribe(() => {
+      this.establecerPermisos();
+      this.actualizarEstadoFormulario();
+    });
     this.cargarUsuarios();
     this.cargarRoles();
+  }
+
+  ngOnDestroy(): void {
+    this.sessionSub?.unsubscribe();
   }
 
   get nombres() {
@@ -111,13 +128,21 @@ export class UsuarioPage implements OnInit {
   }
 
   guardarUsuario(): void {
-    this.mensajeError = null;
-    this.mensajeExito = null;
-
     if (this.usuarioForm.invalid) {
       this.usuarioForm.markAllAsTouched();
       return;
     }
+
+    if (!this.modoEdicion && !this.permiteCrear) {
+      return;
+    }
+
+    if (this.modoEdicion && !this.permiteEditar) {
+      return;
+    }
+
+    this.mensajeError = null;
+    this.mensajeExito = null;
 
     const payload: Usuario = {
       nombres: this.nombres?.value.trim(),
@@ -168,6 +193,10 @@ export class UsuarioPage implements OnInit {
   }
 
   editarUsuario(usuario: Usuario): void {
+    if (!this.permiteEditar) {
+      return;
+    }
+
     this.modoEdicion = true;
     this.usuarioSeleccionadoId = usuario.id ?? null;
     this.mensajeError = null;
@@ -194,6 +223,10 @@ export class UsuarioPage implements OnInit {
   }
 
   eliminarUsuario(usuario: Usuario): void {
+    if (!this.permiteEliminar) {
+      return;
+    }
+
     if (usuario.id == null) {
       return;
     }
@@ -241,6 +274,21 @@ export class UsuarioPage implements OnInit {
     });
     this.usuarioForm.markAsPristine();
     this.usuarioForm.markAsUntouched();
+    this.actualizarEstadoFormulario();
+  }
+
+  private establecerPermisos(): void {
+    this.permiteCrear = this.tienePermiso('/usuario', 'crear');
+    this.permiteEditar = this.tienePermiso('/usuario', 'editar');
+    this.permiteEliminar = this.tienePermiso('/usuario', 'eliminar');
+  }
+
+  private actualizarEstadoFormulario(): void {
+    if (!this.permiteCrear && !this.permiteEditar) {
+      this.usuarioForm.disable({ emitEvent: false });
+    } else {
+      this.usuarioForm.enable({ emitEvent: false });
+    }
   }
 
   obtenerNombreRol(rolId: number | null | undefined): string {
@@ -263,5 +311,20 @@ export class UsuarioPage implements OnInit {
         this.roles = [];
       }
     });
+  }
+
+  private tienePermiso(ruta: string, permiso: 'ver' | 'crear' | 'editar' | 'eliminar'): boolean {
+    const servicio = this.authService as any;
+
+    if (typeof servicio?.hasPermission === 'function') {
+      return servicio.hasPermission(ruta, permiso);
+    }
+
+    const permisos = new Set<string>(
+      servicio?.getPermisosDeRuta?.(ruta)?.map((p: string) =>
+        p ? p.toLowerCase() : p
+      ) ?? []
+    );
+    return permiso === 'ver' ? permisos.has('ver') || permisos.size > 0 : permisos.has(permiso);
   }
 }

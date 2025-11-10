@@ -1,33 +1,33 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CommonModule, NgFor, NgIf } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
-import { ApiService, Modulo, Rol, RolModulo } from '../../services/api.service';
+import { ApiService, MenuItemNode, Rol, RolMenuItemAsignado } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
-interface ModuloFormValue {
-  modulo_id: number;
-  nombre_modulo: string;
-  seleccionado: boolean;
-  puede_ver: boolean;
-  puede_crear: boolean;
-  puede_editar: boolean;
-  puede_eliminar: boolean;
-  estado: string;
-}
+type MenuPermisoNode = MenuItemNode & {
+  ver: boolean;
+  crear: boolean;
+  editar: boolean;
+  eliminar: boolean;
+  hijos?: MenuPermisoNode[];
+};
 
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NgIf, NgFor],
   templateUrl: './roles.html',
   styleUrl: './roles.css'
 })
-export class RolesPage implements OnInit {
+export class RolesPage implements OnInit, OnDestroy {
   rolForm: FormGroup;
 
   roles: Rol[] = [];
-  modulosDisponibles: Modulo[] = [];
+  menuTreeBase: MenuItemNode[] = [];
+  menuTreeForm: MenuPermisoNode[] = [];
 
   cargando = false;
   mensajeError: string | null = null;
@@ -35,21 +35,33 @@ export class RolesPage implements OnInit {
 
   modoEdicion = false;
   rolSeleccionadoId: number | null = null;
+  permiteCrear = false;
+  permiteEditar = false;
+  permiteEliminar = false;
+  private sessionSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private authService: AuthService
   ) {
     this.rolForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.maxLength(100)]],
       descripcion: ['', [Validators.maxLength(255)]],
-      estado: ['Activo', [Validators.required]],
-      modulos: this.fb.array([])
+      estado: ['Activo', [Validators.required]]
     });
   }
 
   ngOnInit(): void {
-    this.cargarModulos();
+    this.establecerPermisos();
+    this.sessionSub = this.authService.session$.subscribe(() => {
+      this.establecerPermisos();
+    });
+    this.cargarMenu();
+  }
+
+  ngOnDestroy(): void {
+    this.sessionSub?.unsubscribe();
   }
 
   get nombre() {
@@ -64,28 +76,20 @@ export class RolesPage implements OnInit {
     return this.rolForm.get('estado');
   }
 
-  get modulosFormArray(): FormArray<FormGroup> {
-    return this.rolForm.get('modulos') as FormArray<FormGroup>;
-  }
-
-  get modulosControles(): FormGroup[] {
-    return this.modulosFormArray.controls as FormGroup[];
-  }
-
-  cargarModulos(): void {
+  cargarMenu(): void {
     this.cargando = true;
     this.apiService
-      .getModulosActivos()
+      .getMenuTree()
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
-        next: (modulos) => {
-          this.modulosDisponibles = modulos ?? [];
-          this._crearFormularioModulos();
+        next: (menu) => {
+          this.menuTreeBase = menu ?? [];
+          this.menuTreeForm = this.enriquecerMenu(this.menuTreeBase);
           this.cargarRoles();
         },
         error: (error) => {
-          console.error('Error al cargar módulos:', error);
-          this.mensajeError = 'No se pudieron cargar los módulos disponibles.';
+          console.error('Error al cargar menú base:', error);
+          this.mensajeError = 'No se pudo cargar la jerarquía del menú.';
         }
       });
   }
@@ -113,31 +117,30 @@ export class RolesPage implements OnInit {
   }
 
   guardarRol(): void {
-    this.mensajeError = null;
-    this.mensajeExito = null;
-
     if (this.rolForm.invalid) {
       this.rolForm.markAllAsTouched();
       return;
     }
 
-    const modulosSeleccionados = this.modulosControles
-      .map(control => control.value as ModuloFormValue)
-      .filter(value => value.seleccionado)
-      .map(value => {
-        const permisos = this._obtenerPermisosDesdeFormulario(value);
-        return {
-          modulo_id: value.modulo_id,
-          permisos,
-          estado: value.estado ?? 'Activo'
-        };
-      });
+    if (!this.modoEdicion && !this.permiteCrear) {
+      return;
+    }
+
+    if (this.modoEdicion && !this.permiteEditar) {
+      return;
+    }
+
+    this.mensajeError = null;
+    this.mensajeExito = null;
+
+    const menuAsignaciones = this.obtenerAsignaciones(this.menuTreeForm);
 
     const payload: Rol = {
       nombre: this.nombre?.value.trim(),
       descripcion: this.descripcion?.value?.trim() || '',
       estado: this.estado?.value,
-      modulos: modulosSeleccionados
+      modulos: [],
+      menu_items: menuAsignaciones
     };
 
     this.cargando = true;
@@ -178,6 +181,10 @@ export class RolesPage implements OnInit {
   }
 
   editarRol(rol: Rol): void {
+    if (!this.permiteEditar) {
+      return;
+    }
+
     this.modoEdicion = true;
     this.rolSeleccionadoId = rol.id ?? null;
     this.mensajeExito = null;
@@ -189,12 +196,17 @@ export class RolesPage implements OnInit {
       estado: rol.estado ?? 'Activo'
     });
 
-    this._aplicarModulosAlFormulario(rol.modulos ?? []);
+    this.menuTreeForm = this.enriquecerMenu(this.menuTreeBase);
+    this.aplicarPermisos(this.menuTreeForm, rol.menu_items ?? []);
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   eliminarRol(rol: Rol): void {
+    if (!this.permiteEliminar) {
+      return;
+    }
+
     if (rol.id == null) {
       return;
     }
@@ -240,96 +252,156 @@ export class RolesPage implements OnInit {
       estado: 'Activo'
     });
 
-    this.modulosControles.forEach(control => {
-      control.patchValue({
-        seleccionado: false,
-        puede_ver: false,
-        puede_crear: false,
-        puede_editar: false,
-        puede_eliminar: false,
-        estado: 'Activo'
-      });
-    });
+    this.menuTreeForm = this.enriquecerMenu(this.menuTreeBase);
 
     this.rolForm.markAsPristine();
     this.rolForm.markAsUntouched();
   }
 
-  obtenerResumenModulos(modulos: RolModulo[] | undefined): string {
-    if (!modulos || modulos.length === 0) {
-      return 'Sin módulos';
+  obtenerResumenMenu(menuItems: RolMenuItemAsignado[] | undefined): string {
+    if (!menuItems || menuItems.length === 0) {
+      return 'Sin accesos';
     }
-    return modulos
-      .map(modulo => `${modulo.nombre_modulo ?? 'Módulo'} (${(modulo.permisos || []).join(', ') || 'ver'})`)
+
+    const resumen = menuItems
+      .map((item) => {
+        const nombre = item.nombre_menu ?? `Elemento ${item.menu_item_id}`;
+        const permisos = item.permisos?.length ? item.permisos.join(', ') : 'ver';
+        return `${nombre} (${permisos})`;
+      })
+      .slice(0, 3)
       .join(' | ');
+
+    const restantes = menuItems.length - 3;
+    return restantes > 0 ? `${resumen} +${restantes}` : resumen;
   }
 
-  private _crearFormularioModulos(): void {
-    const modulosArray = this.modulosFormArray;
-    modulosArray.clear();
+  onPermisoChange(node: MenuPermisoNode, permiso: 'ver' | 'crear' | 'editar' | 'eliminar', checked: boolean): void {
+    if (!this.permiteCrear && !this.permiteEditar) {
+      return;
+    }
 
-    this.modulosDisponibles.forEach(modulo => {
-      modulosArray.push(
-        this.fb.group({
-          modulo_id: [modulo.id, Validators.required],
-          nombre_modulo: [modulo.nombre],
-          seleccionado: [false],
-          puede_ver: [false],
-          puede_crear: [false],
-          puede_editar: [false],
-          puede_eliminar: [false],
-          estado: ['Activo']
-        })
-      );
-    });
+    node[permiso] = checked;
+
+    if ((permiso === 'crear' || permiso === 'editar' || permiso === 'eliminar') && checked) {
+      node.ver = true;
+    }
+
+    if (permiso === 'ver' && !checked) {
+      node.crear = false;
+      node.editar = false;
+      node.eliminar = false;
+    }
   }
 
-  private _aplicarModulosAlFormulario(modulos: RolModulo[]): void {
-    const controles = this.modulosControles;
-    controles.forEach(control => {
-      const moduloAsignado = modulos.find(m => m.modulo_id === control.get('modulo_id')?.value);
-      if (moduloAsignado) {
-        const permisos = moduloAsignado.permisos ?? [];
-        control.patchValue({
-          seleccionado: true,
-          puede_ver: permisos.includes('ver') || permisos.length === 0,
-          puede_crear: permisos.includes('crear'),
-          puede_editar: permisos.includes('editar'),
-          puede_eliminar: permisos.includes('eliminar'),
-          estado: moduloAsignado.estado ?? 'Activo'
-        });
+  private establecerPermisos(): void {
+    this.permiteCrear = this.tienePermiso('/roles', 'crear');
+    this.permiteEditar = this.tienePermiso('/roles', 'editar');
+    this.permiteEliminar = this.tienePermiso('/roles', 'eliminar');
+
+    this.actualizarEstadoFormulario();
+  }
+
+  private tienePermiso(ruta: string, permiso: 'ver' | 'crear' | 'editar' | 'eliminar'): boolean {
+    const servicio = this.authService as any;
+
+    if (typeof servicio?.hasPermission === 'function') {
+      return servicio.hasPermission(ruta, permiso);
+    }
+
+    const permisos = new Set<string>(
+      servicio?.getPermisosDeRuta?.(ruta)?.map((p: string) =>
+        p ? p.toLowerCase() : p
+      ) ?? []
+    );
+    return permiso === 'ver' ? permisos.has('ver') || permisos.size > 0 : permisos.has(permiso);
+  }
+
+  private actualizarEstadoFormulario(): void {
+    if (!this.permiteCrear && !this.permiteEditar) {
+      this.rolForm.disable({ emitEvent: false });
+    } else {
+      this.rolForm.enable({ emitEvent: false });
+    }
+  }
+
+  private enriquecerMenu(nodos: MenuItemNode[] | undefined): MenuPermisoNode[] {
+    if (!nodos || !nodos.length) {
+      return [];
+    }
+    return nodos.map((nodo) => ({
+      ...nodo,
+      ver: false,
+      crear: false,
+      editar: false,
+      eliminar: false,
+      hijos: this.enriquecerMenu(nodo.hijos)
+    }));
+  }
+
+  private aplicarPermisos(nodos: MenuPermisoNode[] | undefined, asignaciones: RolMenuItemAsignado[]): void {
+    if (!nodos) {
+      return;
+    }
+    nodos.forEach((nodo) => {
+      const asignado = asignaciones.find((item) => item.menu_item_id === nodo.id);
+      if (asignado) {
+        const permisos = new Set(asignado.permisos ?? []);
+        nodo.ver = permisos.has('ver') || permisos.size > 0;
+        nodo.crear = permisos.has('crear');
+        nodo.editar = permisos.has('editar');
+        nodo.eliminar = permisos.has('eliminar');
       } else {
-        control.patchValue({
-          seleccionado: false,
-          puede_ver: false,
-          puede_crear: false,
-          puede_editar: false,
-          puede_eliminar: false,
-          estado: 'Activo'
-        });
+        nodo.ver = false;
+        nodo.crear = false;
+        nodo.editar = false;
+        nodo.eliminar = false;
       }
+      this.aplicarPermisos(nodo.hijos, asignaciones);
     });
   }
 
-  private _obtenerPermisosDesdeFormulario(value: ModuloFormValue): string[] {
+  private obtenerAsignaciones(nodos: MenuPermisoNode[] | undefined): RolMenuItemAsignado[] {
+    if (!nodos) {
+      return [];
+    }
+
+    const resultado: RolMenuItemAsignado[] = [];
+
+    const recorrer = (items: MenuPermisoNode[] | undefined) => {
+      if (!items) {
+        return;
+      }
+      for (const nodo of items) {
+        const permisos = this.extraerPermisos(nodo);
+        if (permisos.length) {
+          resultado.push({
+            menu_item_id: nodo.id,
+            permisos
+          });
+        }
+        recorrer(nodo.hijos);
+      }
+    };
+
+    recorrer(nodos);
+    return resultado;
+  }
+
+  private extraerPermisos(nodo: MenuPermisoNode): string[] {
     const permisos: string[] = [];
-    if (value.puede_ver) {
+    if (nodo.ver) {
       permisos.push('ver');
     }
-    if (value.puede_crear) {
+    if (nodo.crear) {
       permisos.push('crear');
     }
-    if (value.puede_editar) {
+    if (nodo.editar) {
       permisos.push('editar');
     }
-    if (value.puede_eliminar) {
+    if (nodo.eliminar) {
       permisos.push('eliminar');
     }
-
-    if (permisos.length === 0) {
-      permisos.push('ver');
-    }
-
     return permisos;
   }
 }

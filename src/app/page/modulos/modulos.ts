@@ -1,18 +1,20 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, NgFor, NgIf, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 import { ApiService, Modulo } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-modulos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, NgIf, NgFor],
   templateUrl: './modulos.html',
   styleUrl: './modulos.css'
 })
-export class Modulos implements OnInit {
+export class Modulos implements OnInit, OnDestroy {
   moduloForm: FormGroup;
   modulos: Modulo[] = [];
 
@@ -22,6 +24,9 @@ export class Modulos implements OnInit {
 
   modoEdicion = false;
   moduloSeleccionadoId: number | null = null;
+  permiteCrear = false;
+  permiteEditar = false;
+  permiteEliminar = false;
 
   estadosDisponibles = [
     { valor: 'Activo', texto: 'Activo' },
@@ -29,11 +34,13 @@ export class Modulos implements OnInit {
   ];
 
   private readonly esBrowser: boolean;
+  private sessionSub?: Subscription;
 
   constructor(
     private fb: FormBuilder,
     @Inject(PLATFORM_ID) private platformId: Object,
-    private apiService: ApiService
+    private apiService: ApiService,
+    private authService: AuthService
   ) {
     this.esBrowser = isPlatformBrowser(this.platformId);
     this.moduloForm = this.fb.group({
@@ -46,8 +53,18 @@ export class Modulos implements OnInit {
 
   ngOnInit(): void {
     if (this.esBrowser) {
+      this.establecerPermisos();
+      this.actualizarEstadoFormulario();
+      this.sessionSub = this.authService.session$.subscribe(() => {
+        this.establecerPermisos();
+        this.actualizarEstadoFormulario();
+      });
       this.cargarModulos();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.sessionSub?.unsubscribe();
   }
 
   get nombre() {
@@ -95,13 +112,21 @@ export class Modulos implements OnInit {
   }
 
   guardarModulo(): void {
-    this.mensajeError = null;
-    this.mensajeExito = null;
-
     if (this.moduloForm.invalid) {
       this.moduloForm.markAllAsTouched();
       return;
     }
+
+    if (!this.modoEdicion && !this.permiteCrear) {
+      return;
+    }
+
+    if (this.modoEdicion && !this.permiteEditar) {
+      return;
+    }
+
+    this.mensajeError = null;
+    this.mensajeExito = null;
 
     const payload: Modulo = {
       nombre: this.nombre?.value.trim(),
@@ -150,6 +175,10 @@ export class Modulos implements OnInit {
   }
 
   editarModulo(modulo: Modulo): void {
+    if (!this.permiteEditar) {
+      return;
+    }
+
     this.modoEdicion = true;
     this.moduloSeleccionadoId = modulo.id ?? null;
     this.mensajeExito = null;
@@ -165,6 +194,10 @@ export class Modulos implements OnInit {
   }
 
   confirmarEliminar(modulo: Modulo): void {
+    if (!this.permiteEliminar) {
+      return;
+    }
+
     const confirmado = window.confirm(
       `¿Deseas eliminar el módulo "${modulo.nombre}"? Esta acción no se puede deshacer.`
     );
@@ -212,6 +245,36 @@ export class Modulos implements OnInit {
     });
     this.moduloForm.markAsPristine();
     this.moduloForm.markAsUntouched();
+    this.actualizarEstadoFormulario();
+  }
+
+  private establecerPermisos(): void {
+    this.permiteCrear = this.tienePermiso('/modulos', 'crear');
+    this.permiteEditar = this.tienePermiso('/modulos', 'editar');
+    this.permiteEliminar = this.tienePermiso('/modulos', 'eliminar');
+  }
+
+  private actualizarEstadoFormulario(): void {
+    if (!this.permiteCrear && !this.permiteEditar) {
+      this.moduloForm.disable({ emitEvent: false });
+    } else {
+      this.moduloForm.enable({ emitEvent: false });
+    }
+  }
+
+  private tienePermiso(ruta: string, permiso: 'ver' | 'crear' | 'editar' | 'eliminar'): boolean {
+    const servicio = this.authService as any;
+
+    if (typeof servicio?.hasPermission === 'function') {
+      return servicio.hasPermission(ruta, permiso);
+    }
+
+    const permisos = new Set<string>(
+      servicio?.getPermisosDeRuta?.(ruta)?.map((p: string) =>
+        p ? p.toLowerCase() : p
+      ) ?? []
+    );
+    return permiso === 'ver' ? permisos.has('ver') || permisos.size > 0 : permisos.has(permiso);
   }
 }
 

@@ -1,4 +1,833 @@
 .roles-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.roles-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: #e0f2fe;
+}
+
+.roles-header h1 {
+  margin: 0 0 6px;
+  font-size: 1.9rem;
+  color: #0f172a;
+}
+
+.roles-header p {
+  margin: 0;
+  color: #355070;
+  font-size: 0.95rem;
+}
+
+.refresh-button {
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.roles-form-card,
+.roles-table-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border: 1px solid #e2e8f0;
+}
+
+.roles-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.roles-form-header h2 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.35rem;
+}
+
+.roles-form-header p {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.roles-form-icon {
+  font-size: 2rem;
+}
+
+.roles-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.roles-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.roles-form label,
+.roles-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.roles-form input,
+.roles-form select,
+.roles-form textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  background: #f8fafc;
+}
+
+.roles-form input:focus,
+.roles-form select:focus,
+.roles-form textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: #ffffff;
+}
+
+.roles-form small {
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.menu-permisos-section {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-permisos-section.disabled {
+  opacity: 0.75;
+}
+
+.menu-permisos-section.disabled .menu-checks label {
+  cursor: not-allowed;
+}
+
+.menu-permisos-section header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-permisos-section h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #1e293b;
+}
+
+.menu-permisos-section p {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.ghost {
+  border: 1px solid #2563eb;
+  background: transparent;
+  color: #2563eb;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menu-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.menu-node {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #e2e8f0;
+}
+
+.menu-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.menu-info small {
+  color: #475569;
+  font-size: 0.75rem;
+}
+
+.menu-checks {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.menu-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+
+.menu-checks input[type='checkbox'] {
+  width: 15px;
+  height: 15px;
+}
+
+.roles-form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+}
+
+.feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alert {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.alert.success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.alert.error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.lista-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.lista-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #0f172a;
+}
+
+.lista-header p {
+  margin: 4px 0 0;
+  color: #475569;
+  font-size: 0.85rem;
+}
+
+.tabla-container {
+  overflow-x: auto;
+}
+
+.tabla-roles {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.tabla-roles th,
+.tabla-roles td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.tabla-roles thead th {
+  background: #f8fafc;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tabla-roles tbody tr.selected {
+  background: #f1f5f9;
+}
+
+.descripcion-cell {
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #475569;
+}
+
+.menu-resumen {
+  font-size: 0.88rem;
+  color: #1f2937;
+}
+
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.estado-badge.activo {
+  background: #dcfce7;
+  color: #047857;
+}
+
+.estado-badge.inactivo {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.btn-editar,
+.btn-eliminar {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #e2e8f0;
+  color: #1f2937;
+  margin-right: 4px;
+}
+
+.btn-eliminar {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.loading-row,
+.empty-row {
+  text-align: center;
+  font-style: italic;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .roles-container {
+    padding: 16px;
+  }
+
+  .roles-form-card,
+  .roles-table-card {
+    padding: 18px;
+  }
+
+  .menu-checks {
+    gap: 6px;
+  }
+}
+.roles-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.roles-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #e0f2fe, #cbd5f5);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+.roles-header h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.roles-header p {
+  margin: 0;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+.refresh-button {
+  border: none;
+  background: #1d4ed8;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.refresh-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refresh-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  background: #1e3a8a;
+}
+
+.roles-form-card,
+.roles-table-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.roles-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.roles-form-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #1e293b;
+}
+
+.roles-form-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.roles-form-icon {
+  font-size: 2.5rem;
+  opacity: 0.85;
+}
+
+.roles-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.roles-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.roles-form label,
+.roles-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.roles-form input,
+.roles-form select,
+.roles-form textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  background: #f8fafc;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.roles-form input:focus,
+.roles-form select:focus,
+.roles-form textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  background: #ffffff;
+}
+
+.roles-form input.error,
+.roles-form textarea.error {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.roles-form small {
+  color: #dc2626;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.menu-permisos-section {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.menu-permisos-section header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.menu-permisos-section h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.2rem;
+}
+
+.menu-permisos-section p {
+  margin: 6px 0 0;
+  color: #475569;
+  font-size: 0.94rem;
+}
+
+.ghost {
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ghost:not(:disabled):hover {
+  transform: translateY(-1px);
+  background: rgba(37, 99, 235, 0.16);
+}
+
+.menu-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.menu-node {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(226, 232, 240, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.menu-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.menu-info small {
+  color: #475569;
+  font-size: 0.78rem;
+}
+
+.menu-checks {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.menu-checks label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #1f2937;
+  font-size: 0.92rem;
+}
+
+.menu-checks input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+}
+
+.roles-form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.25);
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+}
+
+.feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.alert.success {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.alert.error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.lista-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.lista-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #0f172a;
+}
+
+.lista-header p {
+  margin: 4px 0 0;
+  color: #475569;
+}
+
+.tabla-container {
+  overflow-x: auto;
+}
+
+.tabla-roles {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.tabla-roles th,
+.tabla-roles td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  color: #1f2937;
+  font-size: 0.95rem;
+}
+
+.tabla-roles thead th {
+  background: #f8fafc;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tabla-roles tbody tr:hover {
+  background: #f8fafc;
+}
+
+.tabla-roles tbody tr.selected {
+  background: #eff6ff;
+}
+
+.descripcion-cell {
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #475569;
+}
+
+.menu-resumen {
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.estado-badge.activo {
+  background: #dcfce7;
+  color: #047857;
+}
+
+.estado-badge.inactivo {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.btn-editar,
+.btn-eliminar {
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #e2e8f0;
+  color: #1f2937;
+  margin-right: 6px;
+}
+
+.btn-eliminar {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.btn-editar:hover,
+.btn-eliminar:hover {
+  transform: translateY(-1px);
+}
+
+.loading-row,
+.empty-row {
+  text-align: center;
+  font-style: italic;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .roles-container {
+    padding: 16px;
+  }
+
+  .roles-form-card,
+  .roles-table-card {
+    padding: 20px;
+  }
+
+  .menu-checks {
+    gap: 8px;
+  }
+}
+.roles-container {
   max-width: 100%;
   margin: 0 auto;
   padding: 24px;
