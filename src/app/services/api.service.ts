@@ -18,19 +18,31 @@ export interface Usuario {
   updated_at?: string;
 }
 
+export interface DimensionProducto {
+  id?: number;
+  id_producto?: number;
+  ancho: number;
+  espesor: number;
+  diametro_interno: number;
+  diametro_externo: number;
+  estado?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Producto {
   id?: number;
+  codigo_producto: string;
+  nombre_producto: string;
   nombre?: string;
-  nombre_producto?: string;
+  precio?: number;
   descripcion?: string;
   categoria?: string;
   unidad_medida?: string;
-  estado?: string | number;
-  codigo_producto?: string;
-  precio?: number;
-  stock?: number;
-  fechaCreacion?: string;
-  fechaActualizacion?: string;
+  estado?: string;
+  created_at?: string;
+  updated_at?: string;
+  dimensiones?: DimensionProducto[];
 }
 
 export interface VentaDetalle {
@@ -238,15 +250,33 @@ export class ApiService {
   }
 
   crearProducto(producto: Producto): Observable<Producto> {
-    return this.http.post<Producto>(`${this.baseUrl}/productos/`, producto, { headers: this.headers });
+    const payload = {
+      codigo_producto: producto.codigo_producto,
+      nombre_producto: producto.nombre_producto,
+      descripcion: producto.descripcion,
+      categoria: producto.categoria,
+      unidad_medida: producto.unidad_medida,
+      estado: producto.estado,
+      dimensiones: producto.dimensiones ?? []
+    };
+    return this.http.post<Producto>(`${this.baseUrl}/productos/`, payload, { headers: this.headers });
   }
 
   actualizarProducto(id: number, producto: Producto): Observable<Producto> {
-    return this.http.put<Producto>(`${this.baseUrl}/productos/${id}`, producto, { headers: this.headers });
+    const payload = {
+      codigo_producto: producto.codigo_producto,
+      nombre_producto: producto.nombre_producto,
+      descripcion: producto.descripcion,
+      categoria: producto.categoria,
+      unidad_medida: producto.unidad_medida,
+      estado: producto.estado,
+      dimensiones: producto.dimensiones ?? []
+    };
+    return this.http.put<Producto>(`${this.baseUrl}/productos/${id}`, payload, { headers: this.headers });
   }
 
-  eliminarProducto(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/productos/${id}`);
+  eliminarProducto(id: number): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(`${this.baseUrl}/productos/${id}`);
   }
 
   // ========== VENTAS ==========

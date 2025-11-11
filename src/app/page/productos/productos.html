@@ -1,179 +1,188 @@
-<div class="productos-container">
-  <div class="productos-header">
-    <h1>📦 Gestión de Productos</h1>
-    <p>Administra el catálogo de productos e inventario del sistema</p>
-  </div>
+<div class="productos-page">
+  <header class="productos-header">
+    <div>
+      <h1>📦 Gestión de Productos</h1>
+      <p>Administra el catálogo y sus dimensiones asociadas.</p>
+    </div>
+    <div class="productos-meta">
+      <label class="busqueda-label">
+        <span>Buscar</span>
+        <input
+          type="search"
+          placeholder="Código, nombre o categoría"
+          [formControl]="busquedaControl"
+        >
+      </label>
+    </div>
+  </header>
 
-  <!-- Formulario de nuevo producto -->
-  <div class="nuevo-producto-section">
-    <h2>➕ Nuevo Producto</h2>
-    <form class="producto-form" (ngSubmit)="crearProducto()">
+  <section class="alertas" *ngIf="mensajeError || mensajeExito">
+    <div class="alerta error" *ngIf="mensajeError">{{ mensajeError }}</div>
+    <div class="alerta exito" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+  </section>
+
+  <section class="producto-form-card" [formGroup]="productoForm">
+    <div class="form-header">
+      <h2>{{ modoEdicion ? '✏️ Editar producto' : '➕ Nuevo producto' }}</h2>
+      <span class="badge" [class.editando]="modoEdicion">{{ modoEdicion ? 'Edición' : 'Registro' }}</span>
+    </div>
+
+    <form (ngSubmit)="guardarProducto()">
       <div class="form-grid">
-        <div class="form-group">
-          <label for="nombre">Nombre del Producto:</label>
-          <input 
-            type="text" 
-            id="nombre" 
-            [(ngModel)]="nuevoProducto.nombre" 
-            name="nombre"
-            placeholder="Nombre del producto"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="descripcion">Descripción:</label>
-          <textarea 
-            id="descripcion" 
-            [(ngModel)]="nuevoProducto.descripcion" 
-            name="descripcion"
-            placeholder="Descripción detallada del producto"
-            rows="3"
-          ></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="precio">Precio:</label>
-          <input 
-            type="number" 
-            id="precio" 
-            [(ngModel)]="nuevoProducto.precio" 
-            name="precio"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="stock">Stock:</label>
-          <input 
-            type="number" 
-            id="stock" 
-            [(ngModel)]="nuevoProducto.stock" 
-            name="stock"
-            min="0"
-            placeholder="0"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="categoria">Categoría:</label>
-          <select 
-            id="categoria" 
-            [(ngModel)]="nuevoProducto.categoria" 
-            name="categoria"
-            (change)="generarCodigo()"
-            required
-          >
-            <option *ngFor="let categoria of categorias" [value]="categoria.valor">
-              {{categoria.texto}}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="marca">Marca:</label>
-          <select 
-            id="marca" 
-            [(ngModel)]="nuevoProducto.marca" 
-            name="marca"
-            required
-          >
-            <option *ngFor="let marca of marcas" [value]="marca.valor">
-              {{marca.texto}}
-            </option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="codigo">Código del Producto:</label>
-          <div class="codigo-input">
-            <input 
-              type="text" 
-              id="codigo" 
-              [(ngModel)]="nuevoProducto.codigo" 
-              name="codigo"
-              placeholder="Código automático"
-              readonly
-            >
-            <button type="button" class="btn-generar" (click)="generarCodigo()">🔄</button>
+        <label class="form-field">
+          <span>Código</span>
+          <div class="codigo-wrapper">
+            <input type="text" formControlName="codigo_producto" placeholder="Código único">
+            <button type="button" class="btn-mini" (click)="generarCodigo()" [disabled]="productoForm.disabled">Generar</button>
           </div>
+          <small class="error" *ngIf="codigoControl?.invalid && codigoControl?.touched">Requerido.</small>
+        </label>
+
+        <label class="form-field">
+          <span>Nombre</span>
+          <input type="text" formControlName="nombre_producto" placeholder="Nombre del producto">
+          <small class="error" *ngIf="nombreControl?.invalid && nombreControl?.touched">Requerido.</small>
+        </label>
+
+        <label class="form-field">
+          <span>Categoría</span>
+          <select formControlName="categoria">
+            <option value="">Seleccionar</option>
+            <option *ngFor="let categoria of categoriasDisponibles" [value]="categoria">{{ categoria }}</option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Unidad de medida</span>
+          <select formControlName="unidad_medida">
+            <option value="">Seleccionar</option>
+            <option *ngFor="let unidad of unidadesDisponibles" [value]="unidad">{{ unidad }}</option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Estado</span>
+          <select formControlName="estado">
+            <option *ngFor="let estado of estadosDisponibles" [value]="estado">{{ estado }}</option>
+          </select>
+        </label>
+
+        <label class="form-field descripcion">
+          <span>Descripción</span>
+          <textarea rows="3" formControlName="descripcion" placeholder="Información adicional"></textarea>
+        </label>
+      </div>
+
+      <div class="dimensiones-card" formArrayName="dimensiones">
+        <div class="dimensiones-header">
+          <h3>Dimensiones asociadas</h3>
+          <button type="button" class="btn-add" (click)="agregarDimension()" [disabled]="productoForm.disabled">+ Agregar dimensión</button>
         </div>
 
-        <div class="form-group">
-          <label for="fechaVencimiento">Fecha de Vencimiento:</label>
-          <input 
-            type="date" 
-            id="fechaVencimiento" 
-            [(ngModel)]="nuevoProducto.fechaVencimiento" 
-            name="fechaVencimiento"
-          >
+        <div class="dimensiones-table-scroll">
+          <div class="dimensiones-table">
+            <div class="dimension-row" *ngFor="let dimension of dimensiones.controls; let i = index" [formGroupName]="i">
+              <span class="linea">{{ i + 1 }}</span>
+              <label>
+                <span>Ancho</span>
+                <input type="number" formControlName="ancho" min="0" step="0.01">
+              </label>
+              <label>
+                <span>Espesor</span>
+                <input type="number" formControlName="espesor" min="0" step="0.01">
+              </label>
+              <label>
+                <span>Ø Interno</span>
+                <input type="number" formControlName="diametro_interno" min="0" step="0.01">
+              </label>
+              <label>
+                <span>Ø Externo</span>
+                <input type="number" formControlName="diametro_externo" min="0" step="0.01">
+              </label>
+              <button type="button" class="btn-remove" (click)="eliminarDimension(i)" [disabled]="productoForm.disabled">🗑️</button>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-crear">✅ Crear Producto</button>
-        <button type="button" class="btn-limpiar" (click)="limpiarFormulario()">🧹 Limpiar</button>
+        <button type="submit" class="btn-primary" [disabled]="productoForm.invalid || cargando">{{ modoEdicion ? 'Guardar cambios' : 'Registrar producto' }}</button>
+        <button type="button" class="btn-secondary" (click)="modoEdicion ? cancelarEdicion() : limpiarFormulario()">{{ modoEdicion ? 'Cancelar' : 'Limpiar' }}</button>
       </div>
     </form>
-  </div>
+  </section>
 
-  <!-- Lista de productos -->
-  <div class="productos-lista-section">
-    <h2>📋 Catálogo de Productos</h2>
-    <div class="tabla-container">
-      <table class="tabla-productos">
+  <section class="productos-listado">
+    <header>
+      <h2>📋 Catálogo registrado</h2>
+      <span class="badge total">{{ productosFiltrados.length }} registros</span>
+    </header>
+
+    <div class="tabla-wrapper" *ngIf="productosFiltrados.length; else sinProductos">
+      <table>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Categoría</th>
-            <th>Marca</th>
             <th>Código</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Unidad</th>
             <th>Estado</th>
-            <th>Acciones</th>
+            <th>Dimensiones</th>
+            <th>Creado</th>
+            <th class="acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let producto of productos">
-            <td>{{producto.id}}</td>
-            <td>{{producto.nombre}}</td>
-            <td class="descripcion-cell">{{producto.descripcion}}</td>
-            <td>${{producto.precio | number}}</td>
-            <td>
-              <span class="stock-badge" 
-                    [class.alto]="producto.stock > 20"
-                    [class.medio]="producto.stock > 10 && producto.stock <= 20"
-                    [class.bajo]="producto.stock <= 10">
-                {{producto.stock}}
-              </span>
-            </td>
-            <td>
-              <span class="categoria-badge">{{producto.categoria}}</span>
-            </td>
-            <td>{{producto.marca}}</td>
-            <td><code>{{producto.codigo}}</code></td>
-            <td>
-              <span class="estado-badge" 
-                    [class.activo]="producto.estado === 'Activo'"
-                    [class.inactivo]="producto.estado === 'Inactivo'">
-                {{producto.estado}}
-              </span>
-            </td>
-            <td>
-              <button class="btn-ver" (click)="editarProducto(producto)">👁️ Ver</button>
-              <button class="btn-editar" (click)="editarProducto(producto)">✏️ Editar</button>
-              <button class="btn-eliminar" (click)="eliminarProducto(producto)">🗑️ Eliminar</button>
-            </td>
-          </tr>
+          <ng-container *ngFor="let producto of productosFiltrados">
+            <tr>
+              <td>{{ producto.codigo_producto }}</td>
+              <td>{{ producto.nombre_producto }}</td>
+              <td>{{ producto.categoria || '—' }}</td>
+              <td>{{ producto.unidad_medida || '—' }}</td>
+              <td>
+                <span class="estado" [class.inactivo]="producto.estado === 'Inactivo'">{{ producto.estado }}</span>
+              </td>
+              <td>{{ producto.dimensiones?.length || 0 }}</td>
+              <td>{{ producto.created_at | date:'short' }}</td>
+              <td class="acciones">
+                <button type="button" class="btn-icon" (click)="toggleExpansion(producto.id)">
+                  {{ productoExpandidoId === producto.id ? 'Ocultar' : 'Ver' }}
+                </button>
+                <button type="button" class="btn-icon" (click)="editarProducto(producto)" [disabled]="!permiteEditar">✏️</button>
+                <button type="button" class="btn-icon danger" (click)="eliminarProducto(producto)" [disabled]="!permiteEliminar">🗑️</button>
+              </td>
+            </tr>
+            <tr *ngIf="productoExpandidoId === producto.id" class="dimension-expandida">
+              <td colspan="8">
+                <table class="tabla-dimensiones">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Ancho</th>
+                      <th>Espesor</th>
+                      <th>Ø Interno</th>
+                      <th>Ø Externo</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let dimension of producto.dimensiones; let idx = index">
+                      <td>{{ idx + 1 }}</td>
+                      <td>{{ dimension.ancho | number:'1.2-2' }}</td>
+                      <td>{{ dimension.espesor | number:'1.2-2' }}</td>
+                      <td>{{ dimension.diametro_interno | number:'1.2-2' }}</td>
+                      <td>{{ dimension.diametro_externo | number:'1.2-2' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
     </div>
-  </div>
+
+    <ng-template #sinProductos>
+      <p class="sin-datos">No se encontraron productos.</p>
+    </ng-template>
+  </section>
 </div>
