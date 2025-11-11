@@ -20,31 +20,49 @@ export interface Usuario {
 
 export interface Producto {
   id?: number;
-  nombre: string;
+  nombre?: string;
+  nombre_producto?: string;
   descripcion?: string;
-  precio: number;
-  stock: number;
-  categoria: string;
-  marca: string;
-  codigo: string;
-  fechaVencimiento?: string;
-  estado: number;
+  categoria?: string;
+  unidad_medida?: string;
+  estado?: string | number;
+  codigo_producto?: string;
+  precio?: number;
+  stock?: number;
   fechaCreacion?: string;
   fechaActualizacion?: string;
 }
 
-export interface Venta {
+export interface VentaDetalle {
   id?: number;
-  cliente: string;
-  producto: string;
-  cantidad: number;
-  precioUnitario: number;
-  descuento: number;
-  total: number;
-  fecha: string;
-  estado: number;
-  fechaCreacion?: string;
-  fechaActualizacion?: string;
+  id_pedido?: number;
+  id_producto: number;
+  producto_nombre?: string;
+  numero_linea?: number;
+  cantidad_solicitada: number;
+  cantidad_confirmada?: number;
+  precio_unitario: number;
+  precio_total?: number;
+  precio_extranjero?: number;
+  precio_total_extranjero?: number;
+  numero_documento?: string;
+  tipo_documento?: string;
+  estado_siguiente?: number;
+  estado_anterior?: number;
+}
+
+export interface VentaPedido {
+  id?: number;
+  tipo_pedido: string;
+  id_cliente: number;
+  id_vendedor: number;
+  moneda: string;
+  trm: number;
+  oc_cliente?: string;
+  condicion_pago?: string;
+  created_at?: string;
+  updated_at?: string;
+  detalles: VentaDetalle[];
 }
 
 export interface MenuItemNode {
@@ -98,6 +116,19 @@ export interface Rol {
   updated_at?: string;
 }
 
+export interface FavoritoMenuItem {
+  id: number;
+  usuario_id: number;
+  menu_item_id: number;
+  alias?: string | null;
+  orden?: number | null;
+  nombre_menu?: string;
+  descripcion_menu?: string;
+  ruta?: string;
+  icono?: string;
+  permisos?: string[];
+}
+
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -108,6 +139,7 @@ export interface LoginResponse {
   rol: Rol;
   modulos?: MenuItemNode[];
   menu?: MenuItemNode[];
+  favoritos?: FavoritoMenuItem[];
 }
 
 export interface Modulo {
@@ -138,6 +170,17 @@ export interface MenuAssignmentPayload {
   puede_crear: boolean;
   puede_editar: boolean;
   puede_eliminar: boolean;
+}
+
+export interface FavoritoCreatePayload {
+  menu_item_id: number;
+  alias?: string | null;
+  orden?: number | null;
+}
+
+export interface FavoritoUpdatePayload {
+  alias?: string | null;
+  orden?: number | null;
 }
 
 @Injectable({
@@ -207,24 +250,24 @@ export class ApiService {
   }
 
   // ========== VENTAS ==========
-  getVentas(): Observable<Venta[]> {
-    return this.http.get<Venta[]>(`${this.baseUrl}/ventas/`);
+  getVentas(): Observable<VentaPedido[]> {
+    return this.http.get<VentaPedido[]>(`${this.baseUrl}/ventas/`);
   }
 
-  getVenta(id: number): Observable<Venta> {
-    return this.http.get<Venta>(`${this.baseUrl}/ventas/${id}`);
+  getVenta(id: number): Observable<VentaPedido> {
+    return this.http.get<VentaPedido>(`${this.baseUrl}/ventas/${id}`);
   }
 
-  crearVenta(venta: Venta): Observable<Venta> {
-    return this.http.post<Venta>(`${this.baseUrl}/ventas/`, venta, { headers: this.headers });
+  crearVenta(venta: VentaPedido): Observable<VentaPedido> {
+    return this.http.post<VentaPedido>(`${this.baseUrl}/ventas/`, venta, { headers: this.headers });
   }
 
-  actualizarVenta(id: number, venta: Venta): Observable<Venta> {
-    return this.http.put<Venta>(`${this.baseUrl}/ventas/${id}`, venta, { headers: this.headers });
+  actualizarVenta(id: number, venta: VentaPedido): Observable<VentaPedido> {
+    return this.http.put<VentaPedido>(`${this.baseUrl}/ventas/${id}`, venta, { headers: this.headers });
   }
 
-  eliminarVenta(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/ventas/${id}`);
+  eliminarVenta(id: number): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(`${this.baseUrl}/ventas/${id}`);
   }
 
   // ========== ROLES ==========
@@ -348,6 +391,47 @@ export class ApiService {
       `${this.baseUrl}/menu/items/${id}/assign`,
       payload,
       { headers: this.headers }
+    );
+  }
+
+  // ========== FAVORITOS ==========
+  getFavoritosUsuario(usuarioId: number, rolId?: number): Observable<FavoritoMenuItem[]> {
+    const query = rolId != null ? `?rol_id=${rolId}` : '';
+    return this.http.get<FavoritoMenuItem[]>(
+      `${this.baseUrl}/usuarios/${usuarioId}/favoritos${query}`
+    );
+  }
+
+  crearFavorito(
+    usuarioId: number,
+    payload: FavoritoCreatePayload,
+    rolId?: number
+  ): Observable<FavoritoMenuItem> {
+    const query = rolId != null ? `?rol_id=${rolId}` : '';
+    return this.http.post<FavoritoMenuItem>(
+      `${this.baseUrl}/usuarios/${usuarioId}/favoritos${query}`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  actualizarFavorito(
+    usuarioId: number,
+    favoritoId: number,
+    payload: FavoritoUpdatePayload,
+    rolId?: number
+  ): Observable<FavoritoMenuItem> {
+    const query = rolId != null ? `?rol_id=${rolId}` : '';
+    return this.http.patch<FavoritoMenuItem>(
+      `${this.baseUrl}/usuarios/${usuarioId}/favoritos/${favoritoId}${query}`,
+      payload,
+      { headers: this.headers }
+    );
+  }
+
+  eliminarFavorito(usuarioId: number, favoritoId: number): Observable<{ mensaje: string }> {
+    return this.http.delete<{ mensaje: string }>(
+      `${this.baseUrl}/usuarios/${usuarioId}/favoritos/${favoritoId}`
     );
   }
 

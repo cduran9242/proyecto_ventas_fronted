@@ -1,18 +1,24 @@
 <div class="principal-container">
-  <!-- Módulos del sistema -->
-  <div class="modules-section">
-    <h2>Módulos del Sistema</h2>
-    <div class="modules-grid">
-      <div class="module-card" *ngFor="let modulo of modulos">
-        <div class="module-icon">{{modulo.icono}}</div>
-        <h3>{{modulo.titulo}}</h3>
-        <p>{{modulo.descripcion}}</p>
-        <div class="module-actions" *ngIf="modulo.acciones.length">
-          <span class="action-badge" *ngFor="let accion of modulo.acciones">
+  <!-- Favoritos -->
+  <div class="favorites-section" *ngIf="favoritos.length">
+    <h2>Tus Favoritos</h2>
+    <div class="modules-grid favorites-grid">
+      <div
+        class="module-card favorite-card"
+        *ngFor="let favorito of favoritos"
+        [class.is-favorite]="true"
+        (contextmenu)="abrirMenuContextual($event, favorito)"
+      >
+        <div class="favorite-badge">★</div>
+        <div class="module-icon">{{favorito.icono}}</div>
+        <h3>{{favorito.alias || favorito.titulo}}</h3>
+        <p>{{favorito.descripcion}}</p>
+        <div class="module-actions" *ngIf="favorito.acciones.length">
+          <span class="action-badge" *ngFor="let accion of favorito.acciones">
             {{ accion | titlecase }}
           </span>
         </div>
-        <a [routerLink]="modulo.ruta" class="module-link">Acceder</a>
+        <a [routerLink]="favorito.ruta" class="module-link">Acceder</a>
       </div>
     </div>
   </div>
@@ -50,5 +56,38 @@
         </p>
       </div>
     </div>
+  </div>
+
+  <div
+    class="context-menu"
+    *ngIf="menuContextual.visible && menuContextual.modulo"
+    [style.left.px]="menuContextual.x"
+    [style.top.px]="menuContextual.y"
+    (click)="$event.stopPropagation()"
+  >
+    <button
+      type="button"
+      class="context-option"
+      *ngIf="!menuContextual.modulo?.esFavorito"
+      (click)="agregarFavoritoSeleccionado()"
+    >
+      Agregar a favoritos
+    </button>
+    <button
+      type="button"
+      class="context-option"
+      *ngIf="menuContextual.modulo?.esFavorito"
+      (click)="renombrarFavoritoSeleccionado()"
+    >
+      Renombrar favorito
+    </button>
+    <button
+      type="button"
+      class="context-option eliminar"
+      *ngIf="menuContextual.modulo?.esFavorito"
+      (click)="eliminarFavoritoSeleccionado()"
+    >
+      Quitar de favoritos
+    </button>
   </div>
 </div>

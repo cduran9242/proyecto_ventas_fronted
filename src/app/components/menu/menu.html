@@ -37,7 +37,8 @@
     <div
       class="menu-node"
       [style.paddingLeft.px]="nivel * 14"
-      (mouseenter)="expandNode(node)">
+      (mouseenter)="expandNode(node)"
+      (contextmenu)="abrirMenuContextual($event, node)">
       <button
         *ngIf="node.hijos?.length"
         type="button"
@@ -75,3 +76,32 @@
     </ul>
   </li>
 </ng-template>
+
+<div
+  class="menu-context-menu"
+  *ngIf="menuContextual.visible && menuContextual.nodo"
+  [style.left.px]="menuContextual.x"
+  [style.top.px]="menuContextual.y"
+  (click)="$event.stopPropagation()">
+  <button
+    type="button"
+    class="context-option"
+    *ngIf="menuContextual.nodo && !esFavorito(menuContextual.nodo)"
+    (click)="agregarFavorito()">
+    Agregar a favoritos
+  </button>
+  <button
+    type="button"
+    class="context-option"
+    *ngIf="menuContextual.nodo && esFavorito(menuContextual.nodo)"
+    (click)="renombrarFavorito()">
+    Renombrar favorito
+  </button>
+  <button
+    type="button"
+    class="context-option eliminar"
+    *ngIf="menuContextual.nodo && esFavorito(menuContextual.nodo)"
+    (click)="eliminarFavorito()">
+    Quitar de favoritos
+  </button>
+</div>

@@ -1,155 +1,254 @@
-<div class="ventas-container">
-  <div class="ventas-header">
-    <h1>💰 Gestión de Ventas</h1>
-    <p>Registra y administra todas las transacciones de venta</p>
-  </div>
+<div class="ventas-page">
+  <header class="ventas-header">
+    <div>
+      <h1>💰 Gestión de Ventas</h1>
+      <p>Registra, consulta y administra los pedidos con múltiples productos.</p>
+    </div>
+    <div class="ventas-meta">
+      <label class="busqueda-label">
+        <span>Buscar</span>
+        <input
+          type="search"
+          placeholder="Cliente, estado, producto..."
+          [formControl]="busquedaControl"
+        >
+      </label>
+    </div>
+  </header>
 
-  <!-- Formulario de nueva venta -->
-  <div class="nueva-venta-section">
-    <h2>🛒 Nueva Venta</h2>
-    <form class="venta-form" (ngSubmit)="crearVenta()">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="cliente">Cliente:</label>
-          <input 
-            type="text" 
-            id="cliente" 
-            [(ngModel)]="nuevaVenta.cliente" 
-            name="cliente"
-            placeholder="Nombre del cliente"
-            required
-          >
-        </div>
+  <section class="alertas" *ngIf="mensajeError || mensajeExito">
+    <div class="alerta error" *ngIf="mensajeError">{{ mensajeError }}</div>
+    <div class="alerta exito" *ngIf="mensajeExito">{{ mensajeExito }}</div>
+  </section>
 
-        <div class="form-group">
-          <label for="producto">Producto:</label>
-          <select 
-            id="producto" 
-            [(ngModel)]="nuevaVenta.producto" 
-            name="producto"
-            (change)="seleccionarProducto()"
-            required
-          >
-            <option value="">Seleccionar producto</option>
-            <option *ngFor="let producto of productos" [value]="producto.nombre">
-              {{producto.nombre}} - ${{producto.precio | number}} (Stock: {{producto.stock}})
-            </option>
+  <section class="venta-form-card" [formGroup]="ventaForm">
+    <div class="form-header">
+      <h2>{{ modoEdicion ? '✏️ Editar pedido' : '🛒 Nuevo pedido' }}</h2>
+      <span class="badge" [class.editando]="modoEdicion">{{ modoEdicion ? 'Edición' : 'Registro' }}</span>
+    </div>
+
+    <form (ngSubmit)="guardarVenta()">
+      <div class="encabezado-grid">
+        <label class="form-field">
+          <span>Tipo de pedido</span>
+          <input type="text" formControlName="tipo_pedido" placeholder="Nacional, Internacional...">
+          <small class="error" *ngIf="tipoPedidoControl?.invalid && tipoPedidoControl?.touched">Ingresa el tipo de pedido.</small>
+        </label>
+
+        <label class="form-field">
+          <span>ID Cliente</span>
+          <input type="number" formControlName="id_cliente" placeholder="Identificador del cliente">
+          <small class="error" *ngIf="clienteControl?.invalid && clienteControl?.touched">Ingresa el ID del cliente.</small>
+        </label>
+
+        <label class="form-field">
+          <span>ID Vendedor</span>
+          <input type="number" formControlName="id_vendedor" placeholder="Identificador del vendedor">
+          <small class="error" *ngIf="vendedorControl?.invalid && vendedorControl?.touched">Ingresa el ID del vendedor.</small>
+        </label>
+
+        <label class="form-field">
+          <span>Moneda</span>
+          <select formControlName="moneda">
+            <option *ngFor="let moneda of monedasDisponibles" [value]="moneda">{{ moneda }}</option>
           </select>
-        </div>
+        </label>
 
-        <div class="form-group">
-          <label for="cantidad">Cantidad:</label>
-          <input 
-            type="number" 
-            id="cantidad" 
-            [(ngModel)]="nuevaVenta.cantidad" 
-            name="cantidad"
-            min="1"
-            required
-          >
-        </div>
+        <label class="form-field">
+          <span>TRM</span>
+          <input type="number" formControlName="trm" min="0" step="0.0001">
+        </label>
 
-        <div class="form-group">
-          <label for="precioUnitario">Precio Unitario:</label>
-          <input 
-            type="number" 
-            id="precioUnitario" 
-            [(ngModel)]="nuevaVenta.precioUnitario" 
-            name="precioUnitario"
-            readonly
-          >
-        </div>
+        <label class="form-field">
+          <span>O.C. Cliente</span>
+          <input type="text" formControlName="oc_cliente" placeholder="Número de orden de compra">
+        </label>
 
-        <div class="form-group">
-          <label for="descuento">Descuento (%):</label>
-          <input 
-            type="number" 
-            id="descuento" 
-            [(ngModel)]="nuevaVenta.descuento" 
-            name="descuento"
-            min="0"
-            max="100"
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="fecha">Fecha:</label>
-          <input 
-            type="date" 
-            id="fecha" 
-            [(ngModel)]="nuevaVenta.fecha" 
-            name="fecha"
-            required
-          >
-        </div>
+        <label class="form-field">
+          <span>Condición de pago</span>
+          <input type="text" formControlName="condicion_pago" placeholder="Contado, Crédito 30 días...">
+        </label>
       </div>
 
-      <!-- Resumen de la venta -->
-      <div class="resumen-venta">
-        <h3>📊 Resumen de la Venta</h3>
-        <div class="resumen-grid">
-          <div class="resumen-item">
-            <span>Subtotal:</span>
-            <span>${{(nuevaVenta.cantidad * nuevaVenta.precioUnitario) | number}}</span>
+      <div class="detalles-card" formArrayName="detalles">
+        <div class="detalles-header">
+          <h3>Productos del pedido</h3>
+          <button
+            type="button"
+            class="btn-add"
+            (click)="agregarDetalle()"
+            [disabled]="detalles.disabled"
+          >
+            + Agregar producto
+          </button>
+        </div>
+
+        <div class="detalles-table-scroll">
+          <div class="detalles-table">
+            <div class="detalle-row" *ngFor="let detalle of detalles.controls; let i = index" [formGroupName]="i">
+              <span class="linea">{{ i + 1 }}</span>
+
+              <label>
+                <span>Producto</span>
+                <select formControlName="id_producto">
+                  <option value="">Seleccionar</option>
+                  <option *ngFor="let producto of productos" [value]="producto.id">
+                    {{ producto.nombre_producto || producto.nombre || ('Producto #' + producto.id) }}
+                  </option>
+                </select>
+                <small class="error" *ngIf="detalle.get('id_producto')?.invalid && detalle.get('id_producto')?.touched">Requerido.</small>
+              </label>
+
+              <label>
+                <span>Cantidad</span>
+                <input type="number" formControlName="cantidad_solicitada" min="0.01" step="0.01">
+              </label>
+
+              <label>
+                <span>Confirmada</span>
+                <input type="number" formControlName="cantidad_confirmada" min="0" step="0.01">
+              </label>
+
+              <label>
+                <span>Precio Unitario</span>
+                <input type="number" formControlName="precio_unitario" min="0" step="0.01">
+              </label>
+
+              <label>
+                <span>N° Documento</span>
+                <input type="text" formControlName="numero_documento">
+              </label>
+
+              <label>
+                <span>Tipo Documento</span>
+                <input type="text" formControlName="tipo_documento">
+              </label>
+
+              <label>
+                <span>Estado anterior</span>
+                <input type="number" formControlName="estado_anterior" min="0">
+              </label>
+
+              <label>
+                <span>Estado siguiente</span>
+                <input type="number" formControlName="estado_siguiente" min="0">
+              </label>
+
+              <div class="detalle-total">
+                <span>Total</span>
+                <strong>{{ (detalle.get('cantidad_solicitada')?.value || 0) * (detalle.get('precio_unitario')?.value || 0) | number:'1.2-2' }}</strong>
+              </div>
+
+              <button
+                type="button"
+                class="btn-remove"
+                (click)="eliminarDetalle(i)"
+                [disabled]="detalles.disabled"
+              >
+                🗑️
+              </button>
+            </div>
           </div>
-          <div class="resumen-item">
-            <span>Descuento:</span>
-            <span>${{((nuevaVenta.cantidad * nuevaVenta.precioUnitario) * nuevaVenta.descuento / 100) | number}}</span>
-          </div>
-          <div class="resumen-item total">
-            <span>Total:</span>
-            <span>${{calcularTotal() | number}}</span>
-          </div>
+        </div>
+
+        <div class="resumen-venta">
+          <span>Total pedido</span>
+          <strong>{{ totalFormulario | number:'1.2-2' }}</strong>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-crear">✅ Crear Venta</button>
-        <button type="button" class="btn-limpiar">🧹 Limpiar</button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="ventaForm.invalid || detalles.disabled || cargando"
+        >
+          {{ modoEdicion ? 'Guardar cambios' : 'Registrar pedido' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="modoEdicion ? cancelarEdicion() : limpiarFormulario()">
+          {{ modoEdicion ? 'Cancelar' : 'Limpiar' }}
+        </button>
       </div>
     </form>
-  </div>
+  </section>
 
-  <!-- Lista de ventas -->
-  <div class="ventas-lista-section">
-    <h2>📋 Historial de Ventas</h2>
-    <div class="tabla-container">
-      <table class="tabla-ventas">
+  <section class="ventas-listado">
+    <header>
+      <h2>📋 Pedidos registrados</h2>
+      <span class="badge total">{{ ventasFiltradas.length }} registros</span>
+    </header>
+
+    <div class="tabla-wrapper" *ngIf="ventasFiltradas.length; else sinResultados">
+      <table>
         <thead>
           <tr>
             <th>ID</th>
+            <th>Tipo</th>
             <th>Cliente</th>
-            <th>Producto</th>
-            <th>Cantidad</th>
+            <th>Vendedor</th>
+            <th>Moneda</th>
+            <th>TRM</th>
             <th>Total</th>
-            <th>Fecha</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th>Registrado</th>
+            <th class="acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let venta of ventas">
-            <td>{{venta.id}}</td>
-            <td>{{venta.cliente}}</td>
-            <td>{{venta.producto}}</td>
-            <td>{{venta.cantidad}}</td>
-            <td>${{venta.total | number}}</td>
-            <td>{{venta.fecha}}</td>
-            <td>
-              <span class="estado-badge" 
-                    [class.completada]="venta.estado === 'Completada'"
-                    [class.pendiente]="venta.estado === 'Pendiente'">
-                {{venta.estado}}
-              </span>
-            </td>
-            <td>
-              <button class="btn-ver" (click)="editarVenta(venta)">👁️ Ver</button>
-              <button class="btn-editar" (click)="editarVenta(venta)">✏️ Editar</button>
-              <button class="btn-eliminar" (click)="eliminarVenta(venta)">🗑️ Eliminar</button>
-            </td>
-          </tr>
+          <ng-container *ngFor="let venta of ventasFiltradas">
+            <tr>
+              <td>{{ venta.id }}</td>
+              <td>{{ venta.tipo_pedido }}</td>
+              <td>{{ venta.id_cliente }}</td>
+              <td>{{ venta.id_vendedor }}</td>
+              <td>{{ venta.moneda }}</td>
+              <td>{{ venta.trm | number:'1.2-2' }}</td>
+              <td>{{ calcularTotalPedido(venta) | number:'1.2-2' }}</td>
+              <td>{{ venta.created_at | date:'short' }}</td>
+              <td class="acciones">
+                <button class="btn-icon" type="button" (click)="toggleExpancion(venta.id)">
+                  {{ pedidoExpandidoId === venta.id ? 'Ocultar' : 'Ver' }}
+                </button>
+                <button class="btn-icon" type="button" (click)="editarVenta(venta)" [disabled]="!permiteEditar">✏️</button>
+                <button class="btn-icon danger" type="button" (click)="anularVenta(venta)" [disabled]="!permiteEliminar">🗑️</button>
+              </td>
+            </tr>
+            <tr *ngIf="pedidoExpandidoId === venta.id" class="detalle-expandido">
+              <td colspan="9">
+                <table class="tabla-detalles">
+                  <thead>
+                    <tr>
+                      <th>Línea</th>
+                      <th>Producto</th>
+                      <th>Cantidad</th>
+                      <th>Confirmada</th>
+                      <th>Precio</th>
+                      <th>Total</th>
+                      <th>Documento</th>
+                      <th>Estados</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let det of venta.detalles">
+                      <td>{{ det.numero_linea }}</td>
+                      <td>{{ det.producto_nombre || det.id_producto }}</td>
+                      <td>{{ det.cantidad_solicitada | number:'1.2-2' }}</td>
+                      <td>{{ det.cantidad_confirmada | number:'1.2-2' }}</td>
+                      <td>{{ det.precio_unitario | number:'1.2-2' }}</td>
+                      <td>{{ det.precio_total || calcularTotalDetalle(det) | number:'1.2-2' }}</td>
+                      <td>{{ det.tipo_documento }} {{ det.numero_documento }}</td>
+                      <td>{{ det.estado_anterior }} → {{ det.estado_siguiente }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
     </div>
-  </div>
+
+    <ng-template #sinResultados>
+      <p class="sin-datos">No se encontraron pedidos.</p>
+    </ng-template>
+  </section>
 </div>

@@ -9,8 +9,20 @@
       <span class="user-name">{{ sesion.usuario.nombres }} {{ sesion.usuario.apellidos }}</span>
       <span class="user-role">{{ sesion.rol.nombre }}</span>
     </div>
-    <button class="btn-logout" type="button" (click)="logout()">
-      Cerrar sesión
-    </button>
+    <div class="user-menu">
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-haspopup="true"
+        [attr.aria-expanded]="menuAbierto"
+        (click)="toggleMenu($event)"
+      >
+        <span class="chevron" [class.open]="menuAbierto">⌄</span>
+      </button>
+      <div class="menu-dropdown" *ngIf="menuAbierto">
+        <button type="button" class="menu-option" (click)="cambiarContrasena()">Cambiar contraseña</button>
+        <button type="button" class="menu-option" (click)="logout()">Cerrar sesión</button>
+      </div>
+    </div>
   </div>
 </header>
