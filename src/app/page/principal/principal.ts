@@ -161,6 +161,7 @@ export class PrincipalComponent implements OnInit, OnDestroy {
     return this.favoritosSet.has(menuItemId);
   }
 
+
   @HostListener('document:click')
   onClickDocumento(): void {
     this.cerrarMenuContextual();

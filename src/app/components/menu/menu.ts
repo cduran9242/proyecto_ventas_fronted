@@ -226,12 +226,21 @@ export class MenuComponent implements OnInit, OnDestroy {
       }
     ];
 
-    if (session?.rol?.nombre?.toLowerCase().includes('admin')) {
-      this.baseItems.push({
-        ruta: '/menu-config',
-        texto: 'Configurar menú',
-        descripcion: 'Administración de rutas y accesos'
-      });
+    const esAdmin = session?.rol?.nombre?.toLowerCase().includes('admin');
+
+    if (esAdmin) {
+      this.baseItems.push(
+        {
+          ruta: '/reportes',
+          texto: 'Reportes',
+          descripcion: 'Tableros ejecutivos y reportes avanzados'
+        },
+        {
+          ruta: '/menu-config',
+          texto: 'Configurar menú',
+          descripcion: 'Administración de rutas y accesos'
+        }
+      );
     }
 
     this.menuTree = this.construirArbol(session?.menu ?? []);

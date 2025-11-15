@@ -1,8 +1,33 @@
 <div class="reportes-container">
   <div class="reportes-header">
-    <h1>📊 Reportes y Análisis</h1>
+    <h1>Reportes y Análisis</h1>
     <p>Genera reportes detallados con diferentes parámetros de búsqueda</p>
   </div>
+
+  <section class="powerbi-section" *ngIf="puedeVerPowerBi; else sinPermisos">
+    <div class="powerbi-header">
+      <h2>Tablero Ejecutivo Power BI</h2>
+      <p>Visualiza métricas en tiempo real del proyecto de ventas</p>
+    </div>
+    <div class="powerbi-wrapper">
+      <iframe
+        title="Tablero Power BI - Proyecto Ventas"
+        [src]="iframeUrl"
+        width="100%"
+        height="500"
+        frameborder="0"
+        allowFullScreen="true"
+        loading="lazy"
+      ></iframe>
+    </div>
+  </section>
+
+  <ng-template #sinPermisos>
+    <div class="powerbi-restricted">
+      <h2>Acceso restringido</h2>
+      <p>Este tablero solo está disponible para usuarios con rol Administrador.</p>
+    </div>
+  </ng-template>
 
   <!-- Formulario de filtros -->
   <div class="filtros-section">
@@ -68,7 +93,7 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-buscar">🔍 Buscar</button>
+        <button type="submit" class="btn-buscar" [disabled]="estaCargando">🔍 {{ estaCargando ? 'Buscando...' : 'Buscar' }}</button>
         <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">🧹 Limpiar</button>
         <button type="button" class="btn-exportar" (click)="exportar()">📤 Exportar</button>
       </div>
@@ -78,8 +103,18 @@
   <!-- Tabla de resultados -->
   <div class="resultados-section">
     <h2>📋 Resultados del Reporte</h2>
+    <p class="resumen-busqueda" *ngIf="ultimaBusqueda">
+      Última consulta filtrada por 
+      <span *ngIf="ultimaBusqueda.tipoReporte">tipo <strong>{{ ultimaBusqueda.tipoReporte }}</strong></span>
+      <span *ngIf="ultimaBusqueda.usuario"> usuario <strong>{{ ultimaBusqueda.usuario }}</strong></span>
+      <span *ngIf="ultimaBusqueda.estado">
+        estado 
+        <strong>{{ ultimaBusqueda.estado === '1' ? 'Activo' : 'Inactivo' }}</strong>
+      </span>
+      <span *ngIf="!ultimaBusqueda.tipoReporte && !ultimaBusqueda.usuario && !ultimaBusqueda.estado">criterios generales</span>.
+    </p>
     <div class="tabla-container">
-      <table class="tabla-reportes">
+      <table class="tabla-reportes" *ngIf="datosPaginados.length; else sinResultados">
         <thead>
           <tr>
             <th>ID</th>
@@ -87,11 +122,13 @@
             <th>Descripción</th>
             <th>Monto</th>
             <th>Estado</th>
+            <th>Usuario</th>
+            <th>Tipo</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of datosReporte">
+          <tr *ngFor="let item of datosPaginados">
             <td>{{item.id}}</td>
             <td>{{item.fecha}}</td>
             <td>{{item.descripcion}}</td>
@@ -102,6 +139,8 @@
                 {{item.estado}}
               </span>
             </td>
+            <td>{{item.usuario}}</td>
+            <td>{{item.tipo | titlecase}}</td>
             <td>
               <button class="btn-ver">👁️ Ver</button>
               <button class="btn-editar">✏️ Editar</button>
@@ -112,12 +151,19 @@
     </div>
 
     <!-- Información de paginación -->
+    <ng-template #sinResultados>
+      <div class="sin-resultados">
+        <p>No se encontraron reportes con los filtros seleccionados.</p>
+        <button type="button" (click)="limpiarFiltros()">Restablecer filtros</button>
+      </div>
+    </ng-template>
+
     <div class="paginacion-info">
-      <p>Mostrando 4 de 4 registros</p>
+      <p>Mostrando {{ datosPaginados.length }} de {{ totalResultados }} registros</p>
       <div class="paginacion-controls">
-        <button class="btn-pagina" disabled>« Anterior</button>
-        <span class="pagina-actual">Página 1 de 1</span>
-        <button class="btn-pagina" disabled>Siguiente »</button>
+        <button class="btn-pagina" (click)="cambiarPagina('prev')" [disabled]="paginaActual === 1">« Anterior</button>
+        <span class="pagina-actual">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <button class="btn-pagina" (click)="cambiarPagina('next')" [disabled]="paginaActual === totalPaginas">Siguiente »</button>
       </div>
     </div>
   </div>
