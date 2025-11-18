@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 
 // Interfaces para tipado
 export interface Usuario {
@@ -13,6 +13,8 @@ export interface Usuario {
   cedula?: string;
   contrasena?: string;
   rol_id?: number;
+  departamento_id?: number;
+  ciudad_id?: number;
   estado?: string;
   created_at?: string;
   updated_at?: string;
@@ -20,13 +22,17 @@ export interface Usuario {
 
 export interface Producto {
   id?: number;
-  nombre?: string;
-  nombre_producto?: string;
+  codigo_producto: string;
+  nombre_producto: string;
   descripcion?: string;
   categoria?: string;
   unidad_medida?: string;
-  estado?: string | number;
-  codigo_producto?: string;
+  estado?: string;
+  created_at?: string;
+  updated_at?: string;
+  // Campos de compatibilidad (legacy)
+  nombre?: string;
+  codigo?: string;
   precio?: number;
   stock?: number;
   fechaCreacion?: string;
@@ -49,6 +55,8 @@ export interface VentaDetalle {
   tipo_documento?: string;
   estado_siguiente?: number;
   estado_anterior?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface VentaPedido {
@@ -60,6 +68,8 @@ export interface VentaPedido {
   trm: number;
   oc_cliente?: string;
   condicion_pago?: string;
+  departamento_id?: number;
+  ciudad_id?: number;
   created_at?: string;
   updated_at?: string;
   detalles: VentaDetalle[];
@@ -251,7 +261,69 @@ export class ApiService {
 
   // ========== VENTAS ==========
   getVentas(): Observable<VentaPedido[]> {
-    return this.http.get<VentaPedido[]>(`${this.baseUrl}/ventas/`);
+    return this.http
+      .get<VentaPedido[]>(`${this.baseUrl}/ventas/`)
+      .pipe(
+        map(response => {
+          // El backend devuelve directamente una lista List[VentaResponse]
+          if (Array.isArray(response)) {
+            // Normalizar los datos: convertir Decimal (que viene como string) a number
+            return response.map(venta => ({
+              ...venta,
+              trm: typeof venta.trm === 'string' ? parseFloat(venta.trm) : (venta.trm || 1),
+              detalles: (venta.detalles || []).map((detalle: any) => ({
+                ...detalle,
+                cantidad_solicitada: typeof detalle.cantidad_solicitada === 'string' 
+                  ? parseFloat(detalle.cantidad_solicitada) 
+                  : (detalle.cantidad_solicitada || 0),
+                cantidad_confirmada: detalle.cantidad_confirmada 
+                  ? (typeof detalle.cantidad_confirmada === 'string' 
+                      ? parseFloat(detalle.cantidad_confirmada) 
+                      : detalle.cantidad_confirmada)
+                  : undefined,
+                precio_unitario: typeof detalle.precio_unitario === 'string' 
+                  ? parseFloat(detalle.precio_unitario) 
+                  : (detalle.precio_unitario || 0),
+                precio_total: detalle.precio_total 
+                  ? (typeof detalle.precio_total === 'string' 
+                      ? parseFloat(detalle.precio_total) 
+                      : detalle.precio_total)
+                  : undefined,
+                precio_extranjero: detalle.precio_extranjero 
+                  ? (typeof detalle.precio_extranjero === 'string' 
+                      ? parseFloat(detalle.precio_extranjero) 
+                      : detalle.precio_extranjero)
+                  : undefined,
+                precio_total_extranjero: detalle.precio_total_extranjero 
+                  ? (typeof detalle.precio_total_extranjero === 'string' 
+                      ? parseFloat(detalle.precio_total_extranjero) 
+                      : detalle.precio_total_extranjero)
+                  : undefined,
+              }))
+            }));
+          }
+          // Si viene en formato { resultado: [...] } o { data: [...] } (por compatibilidad)
+          if (response && typeof response === 'object' && !Array.isArray(response)) {
+            const ventasArray = (response as any).resultado || (response as any).data || [];
+            return Array.isArray(ventasArray) ? ventasArray : [];
+          }
+          return [];
+        }),
+        // Manejar errores de HTTP
+        catchError((error: any) => {
+          console.error('❌ Error en getVentas():', error);
+          // Si es un error HTTP con mensaje del backend
+          let mensajeError = 'Error al cargar las ventas';
+          if (error?.error?.detail) {
+            mensajeError = error.error.detail;
+          } else if (error?.error && typeof error.error === 'string') {
+            mensajeError = error.error;
+          } else if (error?.message) {
+            mensajeError = error.message;
+          }
+          return throwError(() => new Error(mensajeError));
+        })
+      );
   }
 
   getVenta(id: number): Observable<VentaPedido> {

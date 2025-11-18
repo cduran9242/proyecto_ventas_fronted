@@ -1,9 +1,13 @@
 html, body {
   height: 100%;
   margin: 0;
+  padding: 0;
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: radial-gradient(circle at center, #f7fbff 0%, #e5eef5 35%, #d3dee7 70%, #c5d4df 100%);
   color: #0d2630;
+  overflow-x: hidden; /* Evitar scroll horizontal global */
+  width: 100%;
+  max-width: 100%;
 }
 
 body {

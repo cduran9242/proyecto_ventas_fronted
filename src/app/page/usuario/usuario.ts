@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 
 import { ApiService, Usuario } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { UbicacionesService, Departamento, Ciudad } from '../../services/ubicaciones.service';
 
 interface RolOption {
   id: number;
@@ -15,13 +17,14 @@ interface RolOption {
 @Component({
   selector: 'app-usuario',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './usuario.html',
   styleUrl: './usuario.css'
 })
 export class UsuarioPage implements OnInit, OnDestroy {
   usuarioForm: FormGroup;
   usuarios: Usuario[] = [];
+  usuariosFiltrados: Usuario[] = [];
 
   cargando = false;
   mensajeError: string | null = null;
@@ -36,15 +39,34 @@ export class UsuarioPage implements OnInit, OnDestroy {
   permiteEliminar = false;
   private sessionSub?: Subscription;
 
+  // Búsqueda y filtros
+  busquedaTexto = '';
+  filtroRol = '';
+  filtroEstado = '';
+  ordenColumna: string | null = null;
+  ordenDireccion: 'asc' | 'desc' = 'asc';
+
+  // Paginación
+  paginaActual = 1;
+  registrosPorPagina = 10;
+
   estados = [
     { valor: 'Activo', texto: 'Activo' },
     { valor: 'Inactivo', texto: 'Inactivo' }
   ];
 
+  // Propiedades para ubicaciones
+  departamentos: Departamento[] = [];
+  ciudades: Ciudad[] = [];
+  todasLasCiudades: Ciudad[] = []; // Para buscar ciudades por ID en la lista
+  departamentoSeleccionado: number | null = null;
+  cargandoUbicaciones = false;
+
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
-    private authService: AuthService
+    private authService: AuthService,
+    private ubicacionesService: UbicacionesService
   ) {
     this.usuarioForm = this.fb.group({
       nombres: ['', [Validators.required, Validators.maxLength(120)]],
@@ -54,7 +76,9 @@ export class UsuarioPage implements OnInit, OnDestroy {
       cedula: ['', [Validators.required, Validators.maxLength(20)]],
       contrasena: ['', [Validators.minLength(6), Validators.maxLength(255)]],
       rol_id: ['', [Validators.required]],
-      estado: ['Activo', [Validators.required]]
+      estado: ['Activo', [Validators.required]],
+      departamento_id: [null],
+      ciudad_id: [null]
     });
   }
 
@@ -67,6 +91,8 @@ export class UsuarioPage implements OnInit, OnDestroy {
     });
     this.cargarUsuarios();
     this.cargarRoles();
+    this.cargarDepartamentos();
+    this.cargarTodasLasCiudades(); // Cargar todas las ciudades para mostrar en la lista
   }
 
   ngOnDestroy(): void {
@@ -115,6 +141,7 @@ export class UsuarioPage implements OnInit, OnDestroy {
       .subscribe({
         next: (usuarios) => {
           this.usuarios = usuarios ?? [];
+          this.aplicarFiltros();
         },
         error: (error) => {
           console.error('Error al cargar usuarios:', error);
@@ -161,6 +188,18 @@ export class UsuarioPage implements OnInit, OnDestroy {
       rol_id: Number(this.rol_id?.value),
       estado: this.estado?.value
     };
+
+    // Agregar departamento_id y ciudad_id si están seleccionados
+    const departamentoId = this.usuarioForm.get('departamento_id')?.value;
+    const ciudadId = this.usuarioForm.get('ciudad_id')?.value;
+    
+    if (departamentoId) {
+      payload.departamento_id = Number(departamentoId);
+    }
+    
+    if (ciudadId) {
+      payload.ciudad_id = Number(ciudadId);
+    }
 
     if (contrasenaValor.length > 0) {
       payload.contrasena = contrasenaValor;
@@ -221,8 +260,29 @@ export class UsuarioPage implements OnInit, OnDestroy {
       cedula: usuario.cedula ?? '',
       contrasena: '',
       rol_id: usuario.rol_id ?? '',
-      estado: usuario.estado ?? 'Activo'
+      estado: usuario.estado ?? 'Activo',
+      departamento_id: usuario.departamento_id ?? null,
+      ciudad_id: usuario.ciudad_id ?? null
     });
+
+    // Si el usuario tiene departamento, cargar sus ciudades
+    if (usuario.departamento_id) {
+      this.departamentoSeleccionado = usuario.departamento_id;
+      this.ubicacionesService
+        .getCiudadesActivasPorDepartamento(usuario.departamento_id)
+        .subscribe({
+          next: (ciudades: Ciudad[]) => {
+            this.ciudades = ciudades;
+          },
+          error: (error: any) => {
+            console.error('Error al cargar ciudades:', error);
+            this.ciudades = [];
+          }
+        });
+    } else {
+      this.departamentoSeleccionado = null;
+      this.ciudades = [];
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -273,6 +333,8 @@ export class UsuarioPage implements OnInit, OnDestroy {
   }
 
   resetFormulario(): void {
+    this.departamentoSeleccionado = null;
+    this.ciudades = [];
     this.usuarioForm.reset({
       nombres: '',
       apellidos: '',
@@ -281,7 +343,9 @@ export class UsuarioPage implements OnInit, OnDestroy {
       cedula: '',
       contrasena: '',
       rol_id: '',
-      estado: 'Activo'
+      estado: 'Activo',
+      departamento_id: null,
+      ciudad_id: null
     });
     this.usuarioForm.markAsPristine();
     this.usuarioForm.markAsUntouched();
@@ -309,6 +373,55 @@ export class UsuarioPage implements OnInit, OnDestroy {
     return this.roles.find(rol => rol.id === rolId)?.nombre ?? `Rol ${rolId}`;
   }
 
+  obtenerNombreDepartamento(departamentoId: number | null | undefined): string {
+    if (departamentoId == null || departamentoId === 0) {
+      return '—';
+    }
+    // Buscar en el array de departamentos
+    const departamento = this.departamentos.find(dept => dept.id === departamentoId);
+    if (departamento?.nombre) {
+      return departamento.nombre;
+    }
+    // Si no se encuentra, intentar cargar de nuevo (por si acaso)
+    if (this.departamentos.length === 0) {
+      this.cargarDepartamentos();
+    }
+    return `Dept. ${departamentoId}`;
+  }
+
+  obtenerNombreCiudad(ciudadId: number | null | undefined): string {
+    if (ciudadId == null || ciudadId === 0) {
+      return '—';
+    }
+    // Buscar en el array de todas las ciudades
+    const ciudad = this.todasLasCiudades.find(c => c.id === ciudadId);
+    if (ciudad?.nombre) {
+      return ciudad.nombre;
+    }
+    // Si no se encuentra, intentar cargar de nuevo (por si acaso)
+    if (this.todasLasCiudades.length === 0) {
+      this.cargarTodasLasCiudades();
+    }
+    return `Ciudad ${ciudadId}`;
+  }
+
+  cargarTodasLasCiudades(): void {
+    // Cargar todas las ciudades para poder buscar por ID en la lista
+    this.ubicacionesService.getCiudades().subscribe({
+      next: (ciudades: Ciudad[]) => {
+        this.todasLasCiudades = ciudades || [];
+        console.log('✅ Ciudades cargadas para lista:', this.todasLasCiudades.length);
+        if (this.todasLasCiudades.length > 0) {
+          console.log('Ejemplo de ciudad:', this.todasLasCiudades[0]);
+        }
+      },
+      error: (error: any) => {
+        console.error('❌ Error al cargar todas las ciudades:', error);
+        this.todasLasCiudades = [];
+      }
+    });
+  }
+
   private cargarRoles(): void {
     this.apiService.getRoles().subscribe({
       next: (roles) => {
@@ -324,6 +437,52 @@ export class UsuarioPage implements OnInit, OnDestroy {
     });
   }
 
+  cargarDepartamentos(): void {
+    this.cargandoUbicaciones = true;
+    console.log('🔄 Cargando departamentos...');
+    this.ubicacionesService.getDepartamentosActivos().subscribe({
+      next: (departamentos: Departamento[]) => {
+        this.departamentos = departamentos || [];
+        this.cargandoUbicaciones = false;
+        console.log('✅ Departamentos cargados exitosamente:', this.departamentos.length);
+        if (this.departamentos.length > 0) {
+          console.log('Ejemplo de departamento:', this.departamentos[0]);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error al cargar departamentos:', error);
+        console.error('URL intentada:', this.ubicacionesService.getBaseUrl() + '/api/departamentos/getDepartamentos');
+        console.error('Detalles del error:', error?.error || error?.message || error);
+        this.departamentos = [];
+        this.cargandoUbicaciones = false;
+        // No mostrar error al usuario, los campos son opcionales
+      }
+    });
+  }
+
+  onDepartamentoChange(departamentoId: number | null): void {
+    this.departamentoSeleccionado = departamentoId;
+    this.ciudades = [];
+    this.usuarioForm.patchValue({ ciudad_id: null });
+
+    if (departamentoId) {
+      this.cargandoUbicaciones = true;
+      this.ubicacionesService
+        .getCiudadesActivasPorDepartamento(departamentoId)
+        .subscribe({
+          next: (ciudades: Ciudad[]) => {
+            this.ciudades = ciudades;
+            this.cargandoUbicaciones = false;
+          },
+          error: (error: any) => {
+            console.error('Error al cargar ciudades:', error);
+            this.ciudades = [];
+            this.cargandoUbicaciones = false;
+          }
+        });
+    }
+  }
+
   private tienePermiso(ruta: string, permiso: 'ver' | 'crear' | 'editar' | 'eliminar'): boolean {
     const servicio = this.authService as any;
 
@@ -337,5 +496,169 @@ export class UsuarioPage implements OnInit, OnDestroy {
       ) ?? []
     );
     return permiso === 'ver' ? permisos.has('ver') || permisos.size > 0 : permisos.has(permiso);
+  }
+
+  // ============================================
+  // BÚSQUEDA Y FILTRADO
+  // ============================================
+
+  aplicarFiltros() {
+    let filtrados = [...this.usuarios];
+
+    // Filtro por texto de búsqueda
+    if (this.busquedaTexto.trim()) {
+      const termino = this.busquedaTexto.toLowerCase().trim();
+      filtrados = filtrados.filter(u => 
+        (u.nombres?.toLowerCase() || '').includes(termino) ||
+        (u.apellidos?.toLowerCase() || '').includes(termino) ||
+        (u.email?.toLowerCase() || '').includes(termino) ||
+        (u.cedula?.toLowerCase() || '').includes(termino) ||
+        (u.telefono?.toLowerCase() || '').includes(termino)
+      );
+    }
+
+    // Filtro por rol
+    if (this.filtroRol) {
+      filtrados = filtrados.filter(u => u.rol_id?.toString() === this.filtroRol);
+    }
+
+    // Filtro por estado
+    if (this.filtroEstado) {
+      filtrados = filtrados.filter(u => u.estado === this.filtroEstado);
+    }
+
+    // Ordenamiento
+    if (this.ordenColumna) {
+      filtrados.sort((a, b) => {
+        let valorA: any;
+        let valorB: any;
+
+        switch (this.ordenColumna) {
+          case 'id':
+            valorA = a.id || 0;
+            valorB = b.id || 0;
+            break;
+          case 'nombres':
+            valorA = ((a.nombres || '') + ' ' + (a.apellidos || '')).toLowerCase();
+            valorB = ((b.nombres || '') + ' ' + (b.apellidos || '')).toLowerCase();
+            break;
+          case 'email':
+            valorA = (a.email || '').toLowerCase();
+            valorB = (b.email || '').toLowerCase();
+            break;
+          case 'rol':
+            const nombreRolA = this.roles.find(r => r.id === a.rol_id)?.nombre || '';
+            const nombreRolB = this.roles.find(r => r.id === b.rol_id)?.nombre || '';
+            valorA = nombreRolA.toLowerCase();
+            valorB = nombreRolB.toLowerCase();
+            break;
+          case 'estado':
+            valorA = (a.estado || '').toLowerCase();
+            valorB = (b.estado || '').toLowerCase();
+            break;
+          case 'created_at':
+            valorA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            valorB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            break;
+          default:
+            return 0;
+        }
+
+        if (typeof valorA === 'string') {
+          return this.ordenDireccion === 'asc' 
+            ? valorA.localeCompare(valorB)
+            : valorB.localeCompare(valorA);
+        } else {
+          return this.ordenDireccion === 'asc' 
+            ? valorA - valorB
+            : valorB - valorA;
+        }
+      });
+    }
+
+    this.usuariosFiltrados = filtrados;
+    this.paginaActual = 1;
+  }
+
+  limpiarFiltros() {
+    this.busquedaTexto = '';
+    this.filtroRol = '';
+    this.filtroEstado = '';
+    this.ordenColumna = null;
+    this.ordenDireccion = 'asc';
+    this.aplicarFiltros();
+  }
+
+  ordenarPor(columna: string) {
+    if (this.ordenColumna === columna) {
+      this.ordenDireccion = this.ordenDireccion === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.ordenColumna = columna;
+      this.ordenDireccion = 'asc';
+    }
+    this.aplicarFiltros();
+  }
+
+  // ============================================
+  // PAGINACIÓN
+  // ============================================
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.usuariosFiltrados.length / this.registrosPorPagina));
+  }
+
+  get usuariosPaginados(): Usuario[] {
+    const inicio = (this.paginaActual - 1) * this.registrosPorPagina;
+    return this.usuariosFiltrados.slice(inicio, inicio + this.registrosPorPagina);
+  }
+
+  cambiarPagina(direccion: 'prev' | 'next' | number) {
+    if (typeof direccion === 'number') {
+      this.paginaActual = direccion;
+    } else if (direccion === 'prev' && this.paginaActual > 1) {
+      this.paginaActual--;
+    } else if (direccion === 'next' && this.paginaActual < this.totalPaginas) {
+      this.paginaActual++;
+    }
+  }
+
+  // ============================================
+  // EXPORTACIÓN
+  // ============================================
+
+  exportarCSV() {
+    if (this.usuariosFiltrados.length === 0) {
+      this.mensajeError = 'No hay usuarios para exportar';
+      return;
+    }
+
+    const headers = ['ID', 'Nombres', 'Apellidos', 'Email', 'Teléfono', 'Cédula', 'Rol', 'Estado', 'Fecha Creación'];
+    const filas = this.usuariosFiltrados.map(u => [
+      u.id?.toString() || '',
+      u.nombres || '',
+      u.apellidos || '',
+      u.email || '',
+      u.telefono || '',
+      u.cedula || '',
+      this.roles.find(r => r.id === u.rol_id)?.nombre || '',
+      u.estado || '',
+      u.created_at ? new Date(u.created_at).toLocaleString() : ''
+    ]);
+
+    const csv = [
+      headers.join(','),
+      ...filas.map(fila => fila.map(campo => `"${campo.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `usuarios_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    this.mensajeExito = 'Usuarios exportados exitosamente';
   }
 }

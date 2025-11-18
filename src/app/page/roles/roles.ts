@@ -263,17 +263,22 @@ export class RolesPage implements OnInit, OnDestroy {
       return 'Sin accesos';
     }
 
-    const resumen = menuItems
-      .map((item) => {
-        const nombre = item.nombre_menu ?? `Elemento ${item.menu_item_id}`;
-        const permisos = item.permisos?.length ? item.permisos.join(', ') : 'ver';
-        return `${nombre} (${permisos})`;
-      })
-      .slice(0, 3)
-      .join(' | ');
+    const totalItems = menuItems.length;
+    const totalPermisos = menuItems.reduce((acc, item) => {
+      return acc + (item.permisos?.length || 1);
+    }, 0);
 
-    const restantes = menuItems.length - 3;
-    return restantes > 0 ? `${resumen} +${restantes}` : resumen;
+    const primerosItems = menuItems.slice(0, 2).map((item) => {
+      const nombre = item.nombre_menu ?? `Elemento ${item.menu_item_id}`;
+      const permisos = item.permisos?.length ? item.permisos.length : 1;
+      return `${nombre} (${permisos} permiso${permisos > 1 ? 's' : ''})`;
+    }).join(' • ');
+
+    const restantes = totalItems - 2;
+    if (restantes > 0) {
+      return `${primerosItems} +${restantes} más`;
+    }
+    return primerosItems;
   }
 
   onPermisoChange(node: MenuPermisoNode, permiso: 'ver' | 'crear' | 'editar' | 'eliminar', checked: boolean): void {

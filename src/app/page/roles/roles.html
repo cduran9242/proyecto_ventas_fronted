@@ -78,7 +78,10 @@
           </ng-container>
         </div>
         <ng-template #menuVacio>
-          <p class="empty-row">No hay elementos de menú disponibles. Configúralos primero en "Configurar menú".</p>
+          <div class="empty-row">
+            <p>📋 No hay elementos de menú disponibles.</p>
+            <p style="font-size: 0.9rem; margin-top: 8px;">Configúralos primero en "Configurar menú".</p>
+          </div>
         </ng-template>
       </section>
 
@@ -132,15 +135,24 @@
         </thead>
         <tbody>
           <tr *ngIf="cargando">
-            <td colspan="6" class="loading-row">Cargando roles...</td>
+            <td colspan="6" class="loading-row">
+              <span>⏳ Cargando roles...</span>
+            </td>
           </tr>
           <tr *ngIf="!cargando && roles.length === 0">
-            <td colspan="6" class="empty-row">No hay roles registrados todavía.</td>
+            <td colspan="6" class="empty-row">
+              <span>📭 No hay roles registrados todavía.</span>
+              <p style="font-size: 0.9rem; margin-top: 8px; color: #94a3b8;">Crea tu primer rol usando el formulario de arriba.</p>
+            </td>
           </tr>
           <tr *ngFor="let rol of roles" [class.selected]="rolSeleccionadoId === rol.id">
             <td class="perfil-nombre">{{ rol.nombre }}</td>
-            <td class="descripcion-cell">{{ rol.descripcion || '—' }}</td>
-            <td class="menu-resumen">{{ obtenerResumenMenu(rol.menu_items) }}</td>
+            <td class="descripcion-cell" [title]="rol.descripcion || 'Sin descripción'">
+              {{ rol.descripcion || '—' }}
+            </td>
+            <td class="menu-resumen" [title]="obtenerResumenMenu(rol.menu_items)">
+              <span class="menu-resumen-text">{{ obtenerResumenMenu(rol.menu_items) }}</span>
+            </td>
             <td>
               <span class="estado-badge" [class.activo]="rol.estado === 'Activo'" [class.inactivo]="rol.estado !== 'Activo'">
                 {{ rol.estado }}

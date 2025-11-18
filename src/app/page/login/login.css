@@ -42,7 +42,7 @@
 
 .welcome-title {
   color: white;
-  font-size: 3.5rem;
+  font-size: clamp(2rem, 6vw, 3.5rem);
   font-weight: 700;
   margin-bottom: 20px;
   line-height: 1.2;
@@ -50,7 +50,7 @@
 
 .welcome-subtitle {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 1.2rem;
+  font-size: clamp(0.9rem, 2.5vw, 1.2rem);
   font-weight: 300;
   line-height: 1.5;
 }
@@ -128,7 +128,7 @@
 /* Título del formulario */
 .form-title {
   color: #333;
-  font-size: 2rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
   font-weight: 700;
   margin-bottom: 40px;
   margin-top: 0;
@@ -151,7 +151,7 @@
   padding: 15px 20px;
   border: 1px solid #e1e5e9;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: clamp(14px, 2vw, 16px);
   background-color: #f8f9fa;
   transition: all 0.3s ease;
   color: #333;
@@ -253,11 +253,11 @@
   }
   
   .welcome-title {
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
   }
   
   .welcome-subtitle {
-    font-size: 1rem;
+    font-size: clamp(0.85rem, 2vw, 1rem);
   }
   
   .login-form-section {
@@ -297,12 +297,12 @@
   }
   
   .welcome-title {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 4vw, 2rem);
     margin-bottom: 15px;
   }
   
   .welcome-subtitle {
-    font-size: 0.9rem;
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
   }
   
   .decoration-circle {
@@ -332,18 +332,18 @@
   }
   
   .form-title {
-    font-size: 1.5rem;
+    font-size: clamp(1.3rem, 3.5vw, 1.5rem);
     margin-bottom: 30px;
   }
   
   .form-input {
     padding: 16px 20px;
-    font-size: 16px; /* Evita zoom en iOS */
+    font-size: clamp(14px, 2vw, 16px); /* Evita zoom en iOS */
   }
   
   .btn-continue {
     padding: 16px 25px;
-    font-size: 14px;
+    font-size: clamp(13px, 2vw, 14px);
   }
 }
 
@@ -380,16 +380,17 @@
   }
   
   .form-title {
-    font-size: 1.3rem;
+    font-size: clamp(1.2rem, 3vw, 1.3rem);
     margin-bottom: 25px;
   }
   
   .form-input {
     padding: 14px 18px;
+    font-size: clamp(14px, 2vw, 16px);
   }
   
   .btn-continue {
     padding: 15px 20px;
-    font-size: 13px;
+    font-size: clamp(12px, 2vw, 13px);
   }
 }

@@ -74,9 +74,10 @@ export class Reportes {
     private readonly authService: AuthService,
     private readonly sanitizer: DomSanitizer
   ) {
-    this.powerBiUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-      'https://app.powerbi.com/view?r=eyJrIjoiYzQ5Yzg2ZTYtZjI1Zi00YWRiLWJiNzUtOWEyODAyNzY4ZTk5IiwidCI6IjFlOWFhYmU4LTY3ZjgtNGYxYy1hMzI5LWE3NTRlOTI0OTlhZSIsImMiOjR9'
-    );
+    // URL pública de Power BI
+    const publicUrl = 'https://app.powerbi.com/view?r=eyJrIjoiYzQ5Yzg2ZTYtZjI1Zi00YWRiLWJiNzUtOWEyODAyNzY4ZTk5IiwidCI6IjFlOWFhYmU4LTY3ZjgtNGYxYy1hMzI5LWE3NTRlOTI0OTlhZSIsImMiOjR9';
+    
+    this.powerBiUrl = this.sanitizer.bypassSecurityTrustResourceUrl(publicUrl);
   }
 
   get puedeVerPowerBi(): boolean {

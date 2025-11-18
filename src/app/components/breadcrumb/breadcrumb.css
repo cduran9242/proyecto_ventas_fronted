@@ -1,5 +1,9 @@
 .breadcrumb {
-  width: 100%;
+  position: fixed;
+  top: 60px; /* Debajo del header */
+  left: 260px; /* A la derecha del menú */
+  right: 0;
+  width: calc(100% - 260px);
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
   padding: 0px 24px;
   color: #0c2b3a;
@@ -7,6 +11,7 @@
   font-size: 0.65rem;
   letter-spacing: 0.2px;
   height: 20px;
+  z-index: 100;
 }
 
 .breadcrumb-list {
@@ -48,9 +53,18 @@
   font-size: 0.8rem;
 }
 
+@media (max-width: 1024px) {
+  .breadcrumb {
+    left: 240px;
+    width: calc(100% - 240px);
+  }
+}
+
 @media (max-width: 768px) {
   .breadcrumb {
-    display: none;
+    left: 0;
+    width: 100%;
+    top: 60px;
   }
 }
 

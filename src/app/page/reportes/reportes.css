@@ -1,9 +1,11 @@
 .reportes-container {
+  width: 100%;
   max-width: 100%;
-  margin: 0 auto;
+  margin: 0;
   padding: 20px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
+  box-sizing: border-box;
 }
 
 /* Header */
@@ -18,14 +20,14 @@
 
 .reportes-header h1 {
   color: #2c3e50;
-  font-size: 2.2rem;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
   margin-bottom: 10px;
   font-weight: 700;
 }
 
 .reportes-header p {
   color: #7f8c8d;
-  font-size: 1.1rem;
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
 }
 
 .powerbi-section {
@@ -38,13 +40,14 @@
 
 .powerbi-header h2 {
   color: #2c3e50;
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
   margin-bottom: 8px;
 }
 
 .powerbi-header p {
   color: #7f8c8d;
   margin: 0 0 20px;
+  font-size: clamp(0.85rem, 2vw, 1rem);
 }
 
 .powerbi-wrapper {
@@ -53,6 +56,7 @@
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  min-height: 300px;
 }
 
 .powerbi-wrapper iframe {
@@ -86,7 +90,7 @@
 .filtros-section h2 {
   color: #2c3e50;
   margin-bottom: 20px;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
 }
 
 .filtros-form {
@@ -110,7 +114,7 @@
   color: #2c3e50;
   font-weight: 600;
   margin-bottom: 8px;
-  font-size: 14px;
+  font-size: clamp(13px, 2vw, 14px);
 }
 
 .form-group input,
@@ -118,7 +122,7 @@
   padding: 12px 15px;
   border: 2px solid #e1e5e9;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: clamp(14px, 2vw, 16px);
   transition: all 0.3s ease;
   background-color: #f8f9fa;
 }
@@ -145,11 +149,13 @@
   padding: 12px 25px;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: clamp(14px, 2vw, 16px);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 120px;
+  flex: 1;
+  max-width: 200px;
 }
 
 .btn-buscar {
@@ -174,6 +180,12 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
+.btn-buscar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* Sección de resultados */
 .resultados-section {
   background: white;
@@ -185,13 +197,14 @@
 .resultados-section h2 {
   color: #2c3e50;
   margin-bottom: 20px;
-  font-size: 1.5rem;
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
 }
 
 .resumen-busqueda {
   color: #4a5568;
   margin-bottom: 15px;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
+  line-height: 1.6;
 }
 
 .resumen-busqueda strong {
@@ -201,10 +214,12 @@
 .tabla-container {
   overflow-x: auto;
   margin-bottom: 20px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tabla-reportes {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
@@ -218,13 +233,14 @@
   padding: 15px 12px;
   text-align: left;
   font-weight: 600;
-  font-size: 14px;
+  font-size: clamp(12px, 2vw, 14px);
+  white-space: nowrap;
 }
 
 .tabla-reportes td {
   padding: 12px;
   border-bottom: 1px solid #e1e5e9;
-  font-size: 14px;
+  font-size: clamp(12px, 2vw, 14px);
 }
 
 .tabla-reportes tbody tr:hover {
@@ -234,9 +250,10 @@
 .estado-badge {
   padding: 4px 12px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: clamp(10px, 1.5vw, 12px);
   font-weight: 600;
   text-transform: uppercase;
+  display: inline-block;
 }
 
 .estado-badge.activo {
@@ -254,10 +271,11 @@
   padding: 6px 12px;
   border: none;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: clamp(10px, 1.5vw, 12px);
   cursor: pointer;
   margin-right: 5px;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .btn-ver {
@@ -290,12 +308,14 @@
 .paginacion-info p {
   color: #7f8c8d;
   margin: 0;
+  font-size: clamp(0.85rem, 2vw, 1rem);
 }
 
 .paginacion-controls {
   display: flex;
   align-items: center;
   gap: 15px;
+  flex-wrap: wrap;
 }
 
 .sin-resultados {
@@ -307,6 +327,11 @@
   margin-bottom: 20px;
 }
 
+.sin-resultados p {
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  margin-bottom: 10px;
+}
+
 .sin-resultados button {
   margin-top: 10px;
   border: none;
@@ -316,6 +341,7 @@
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  font-size: clamp(0.85rem, 2vw, 1rem);
 }
 
 .btn-pagina {
@@ -325,7 +351,8 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 14px;
+  font-size: clamp(12px, 2vw, 14px);
+  white-space: nowrap;
 }
 
 .btn-pagina:not(:disabled):hover {
@@ -341,57 +368,125 @@
 .pagina-actual {
   color: #2c3e50;
   font-weight: 600;
-  font-size: 14px;
+  font-size: clamp(12px, 2vw, 14px);
 }
 
-/* Responsive */
+/* Responsive - Tablet */
+@media (max-width: 1024px) {
+  .reportes-container {
+    padding: 18px;
+  }
+
+  .filtros-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .powerbi-section,
+  .filtros-section,
+  .resultados-section {
+    padding: 25px;
+  }
+}
+
+/* Responsive - Mobile */
 @media (max-width: 768px) {
   .reportes-container {
     padding: 15px;
   }
-  
+
+  .reportes-header,
+  .powerbi-section,
+  .filtros-section,
+  .resultados-section {
+    padding: 20px;
+    border-radius: 12px;
+  }
+
   .filtros-grid {
     grid-template-columns: 1fr;
+    gap: 15px;
   }
-  
+
   .form-actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
   }
-  
+
   .btn-buscar,
   .btn-limpiar,
   .btn-exportar {
     width: 100%;
-    max-width: 200px;
+    max-width: none;
+    flex: none;
   }
-  
+
   .paginacion-info {
     flex-direction: column;
     text-align: center;
+    gap: 10px;
   }
-  
+
+  .paginacion-controls {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .tabla-reportes th,
+  .tabla-reportes td {
+    padding: 10px 8px;
+  }
+
+  .btn-ver,
+  .btn-editar {
+    padding: 5px 10px;
+    margin-right: 3px;
+    font-size: 11px;
+  }
+}
+
+/* Responsive - Small Mobile */
+@media (max-width: 480px) {
+  .reportes-container {
+    padding: 10px;
+  }
+
+  .reportes-header,
+  .powerbi-section,
+  .filtros-section,
+  .resultados-section {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .powerbi-wrapper {
+    min-height: 250px;
+  }
+
+  .tabla-container {
+    margin-left: -15px;
+    margin-right: -15px;
+    padding: 0 15px;
+  }
+
   .tabla-reportes {
-    font-size: 12px;
+    font-size: 11px;
+    min-width: 500px;
   }
-  
+
   .tabla-reportes th,
   .tabla-reportes td {
     padding: 8px 6px;
   }
-}
 
-@media (max-width: 480px) {
-  .reportes-header h1 {
-    font-size: 1.8rem;
+  .btn-ver,
+  .btn-editar {
+    padding: 4px 8px;
+    font-size: 10px;
+    margin-right: 2px;
   }
-  
-  .filtros-section,
-  .resultados-section {
-    padding: 20px;
-  }
-  
-  .tabla-container {
-    font-size: 11px;
+
+  .form-group input,
+  .form-group select {
+    padding: 10px 12px;
   }
 }

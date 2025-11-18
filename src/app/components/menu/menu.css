@@ -1,15 +1,22 @@
 .menu {
-  width: 220px;
-  min-width: 220px;
-  height: 100%;
-  padding: 24px 18px;
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
+  position: fixed;
+  top: 60px; /* Debajo del header */
+  left: 0;
+  bottom: 0;
+  width: 260px;
+  min-width: 260px;
+  height: calc(100vh - 60px); /* Altura total menos el header */
+  padding: clamp(20px, 2.5vw, 28px) clamp(16px, 2vw, 24px);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-right: 2px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   color: #0f172a;
-  gap: 12px;
-  position: relative;
+  gap: 16px;
+  z-index: 150;
+  box-shadow: 4px 0 20px rgba(15, 23, 42, 0.08);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .menu-toggle {
@@ -98,20 +105,31 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+  padding-right: 8px;
 }
 
 .menu-list::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+}
+
+.menu-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
 }
 
 .menu-list::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 3px;
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.menu-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .menu-item {
@@ -131,18 +149,20 @@
   color: #94a3b8;
   cursor: pointer;
   padding: 4px;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .menu-node__toggle:hover {
-  background: rgba(148, 163, 184, 0.15);
-  color: #475569;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  transform: scale(1.1);
 }
 
 .chevron {
@@ -153,27 +173,29 @@
 .menu-link {
   display: block;
   width: 100%;
-  padding: 10px 12px;
-  border-radius: 8px;
+  padding: clamp(10px, 1.5vw, 12px) clamp(12px, 2vw, 16px);
+  border-radius: 10px;
   text-decoration: none;
-  color: #334155;
-  font-size: 0.95rem;
+  color: #475569;
+  font-size: clamp(0.9rem, 2vw, 0.95rem);
   font-weight: 500;
-  transition: background 0.2s ease, color 0.2s ease, padding-left 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .menu-link:hover {
-  background: #f1f5f9;
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%);
   color: #0f172a;
-  padding-left: 16px;
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
 .menu-link.active {
-  background: #e2e8f0;
+  background: linear-gradient(90deg, #eff6ff 0%, #dbeafe 100%);
   color: #1d4ed8;
   font-weight: 600;
-  padding-left: 18px;
-  border-left: 3px solid #1d4ed8;
+  border-left: 4px solid #2563eb;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
 }
 
 .menu-item ul {
@@ -184,11 +206,13 @@
 
 .menu-label {
   display: block;
-  padding: 10px 12px;
-  border-radius: 8px;
-  background: #f8fafc;
-  color: #475569;
+  padding: clamp(10px, 1.5vw, 12px) clamp(12px, 2vw, 16px);
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%);
+  color: #64748b;
   font-weight: 600;
+  font-size: clamp(0.85rem, 2vw, 0.9rem);
+  border-left: 3px solid #cbd5e1;
 }
 
 .menu-text {
@@ -246,19 +270,29 @@
 
 @media (max-width: 1024px) {
   .menu {
-    width: 200px;
-    min-width: 200px;
+    width: 240px;
+    min-width: 240px;
+  }
+  
+  .breadcrumb {
+    left: 240px;
+    width: calc(100% - 240px);
+  }
+  
+  .container {
+    margin-left: 240px;
   }
 }
 
 @media (max-width: 768px) {
   .menu {
     position: fixed;
-    top: 0;
+    top: 60px; /* Debajo del header también en móvil */
     left: 0;
     bottom: 0;
     width: min(300px, 85vw);
     min-width: auto;
+    height: calc(100vh - 60px);
     border-radius: 0 24px 24px 0;
     margin: 0;
     transform: translateX(-110%);

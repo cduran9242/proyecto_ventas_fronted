@@ -146,6 +146,47 @@
             Selecciona un estado.
           </small>
         </div>
+
+        <div class="form-group">
+          <label for="departamento">Departamento:</label>
+          <select 
+            id="departamento"
+            formControlName="departamento_id"
+            (change)="onDepartamentoChange($any($event.target).value ? +$any($event.target).value : null)"
+            [disabled]="cargandoUbicaciones"
+          >
+            <option value="">Seleccionar departamento (opcional)</option>
+            <option *ngFor="let dept of departamentos" [value]="dept.id">
+              {{ dept.nombre }}
+            </option>
+          </select>
+          <small *ngIf="cargandoUbicaciones" class="hint">
+            Cargando departamentos...
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="ciudad">Ciudad:</label>
+          <select 
+            id="ciudad"
+            formControlName="ciudad_id"
+            [disabled]="!departamentoSeleccionado || ciudades.length === 0 || cargandoUbicaciones"
+          >
+            <option value="">Seleccionar ciudad (opcional)</option>
+            <option *ngFor="let ciudad of ciudades" [value]="ciudad.id">
+              {{ ciudad.nombre }}
+            </option>
+          </select>
+          <small *ngIf="!departamentoSeleccionado" class="hint">
+            Primero selecciona un departamento
+          </small>
+          <small *ngIf="departamentoSeleccionado && ciudades.length === 0 && !cargandoUbicaciones" class="hint">
+            No hay ciudades disponibles para este departamento
+          </small>
+          <small *ngIf="cargandoUbicaciones && departamentoSeleccionado" class="hint">
+            Cargando ciudades...
+          </small>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -171,37 +212,142 @@
 
   <!-- Lista de usuarios -->
   <div class="usuarios-lista-section">
-    <h2>📋 Lista de Usuarios</h2>
+    <div class="lista-header">
+      <div>
+        <h2>📋 Lista de Usuarios</h2>
+        <p *ngIf="usuariosFiltrados.length !== usuarios.length" class="filtros-activos">
+          Mostrando {{ usuariosFiltrados.length }} de {{ usuarios.length }} usuarios
+        </p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-refrescar" type="button" (click)="cargarUsuarios()" [disabled]="cargando">
+          🔄 {{ cargando ? 'Cargando...' : 'Actualizar' }}
+        </button>
+        <button type="button" class="btn-exportar" (click)="exportarCSV()" [disabled]="usuariosFiltrados.length === 0">
+          📤 Exportar CSV
+        </button>
+      </div>
+    </div>
 
-    <div class="tabla-toolbar">
-      <button class="btn-refrescar" type="button" (click)="cargarUsuarios()" [disabled]="cargando">
-        🔄 Actualizar
-      </button>
+    <!-- Filtros y búsqueda -->
+    <div class="filtros-section">
+      <div class="filtros-grid">
+        <div class="filtro-group">
+          <label for="busqueda">🔍 Búsqueda:</label>
+          <input 
+            type="text" 
+            id="busqueda"
+            [(ngModel)]="busquedaTexto"
+            (ngModelChange)="aplicarFiltros()"
+            placeholder="Buscar por nombre, email, cédula..."
+            class="input-busqueda"
+          >
+        </div>
+
+        <div class="filtro-group">
+          <label for="filtroRol">👤 Rol:</label>
+          <select 
+            id="filtroRol"
+            [(ngModel)]="filtroRol"
+            (ngModelChange)="aplicarFiltros()"
+            class="select-filtro"
+          >
+            <option value="">Todos los roles</option>
+            <option *ngFor="let rol of roles" [value]="rol.id.toString()">
+              {{ rol.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <label for="filtroEstado">⚡ Estado:</label>
+          <select 
+            id="filtroEstado"
+            [(ngModel)]="filtroEstado"
+            (ngModelChange)="aplicarFiltros()"
+            class="select-filtro"
+          >
+            <option value="">Todos los estados</option>
+            <option *ngFor="let estado of estados" [value]="estado.valor">
+              {{ estado.texto }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <button type="button" class="btn-limpiar-filtros" (click)="limpiarFiltros()">
+            🧹 Limpiar filtros
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="tabla-container">
       <table class="tabla-usuarios">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Nombre Completo</th>
-            <th>Email</th>
+            <th (click)="ordenarPor('id')" class="sortable">
+              ID
+              <span *ngIf="ordenColumna === 'id'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th (click)="ordenarPor('nombres')" class="sortable">
+              Nombre Completo
+              <span *ngIf="ordenColumna === 'nombres'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th (click)="ordenarPor('email')" class="sortable">
+              Email
+              <span *ngIf="ordenColumna === 'email'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
             <th>Teléfono</th>
             <th>Cédula</th>
-            <th>Rol</th>
-            <th>Estado</th>
-            <th>Fecha Creación</th>
+            <th (click)="ordenarPor('rol')" class="sortable">
+              Rol
+              <span *ngIf="ordenColumna === 'rol'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th>Departamento</th>
+            <th>Ciudad</th>
+            <th (click)="ordenarPor('estado')" class="sortable">
+              Estado
+              <span *ngIf="ordenColumna === 'estado'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th (click)="ordenarPor('created_at')" class="sortable">
+              Fecha Creación
+              <span *ngIf="ordenColumna === 'created_at'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngIf="cargando">
-            <td colspan="9" class="loading-row">Cargando usuarios...</td>
+            <td colspan="11" class="loading-row">
+              <span>⏳ Cargando usuarios...</span>
+            </td>
           </tr>
           <tr *ngIf="!cargando && usuarios.length === 0">
-            <td colspan="9" class="empty-row">No hay usuarios registrados.</td>
+            <td colspan="11" class="empty-row">
+              <span>📭 No hay usuarios registrados todavía.</span>
+              <p style="font-size: 0.9rem; margin-top: 8px; color: #94a3b8;">Crea tu primer usuario usando el formulario de arriba.</p>
+            </td>
           </tr>
-          <tr *ngFor="let usuario of usuarios">
+          <tr *ngIf="!cargando && usuarios.length > 0 && usuariosFiltrados.length === 0">
+            <td colspan="11" class="empty-row">
+              <span>🔍 No se encontraron usuarios con los filtros seleccionados.</span>
+              <button type="button" class="btn-limpiar-filtros" (click)="limpiarFiltros()" style="margin-top: 10px;">Limpiar filtros</button>
+            </td>
+          </tr>
+          <tr *ngFor="let usuario of usuariosPaginados">
             <td>{{usuario.id}}</td>
             <td>{{usuario.nombres}} {{usuario.apellidos}}</td>
             <td>{{usuario.email}}</td>
@@ -213,6 +359,16 @@
                     [class.vendedor]="obtenerNombreRol(usuario.rol_id) === 'Operador'"
                     [class.cliente]="obtenerNombreRol(usuario.rol_id) === 'Auditor'">
                 {{obtenerNombreRol(usuario.rol_id)}}
+              </span>
+            </td>
+            <td>
+              <span class="ubicacion-badge">
+                {{obtenerNombreDepartamento(usuario.departamento_id)}}
+              </span>
+            </td>
+            <td>
+              <span class="ubicacion-badge">
+                {{obtenerNombreCiudad(usuario.ciudad_id)}}
               </span>
             </td>
             <td>
@@ -230,6 +386,45 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Paginación -->
+      <div class="paginacion-container" *ngIf="totalPaginas > 1">
+        <div class="paginacion-info">
+          <p>Mostrando {{ usuariosPaginados.length }} de {{ usuariosFiltrados.length }} usuarios</p>
+        </div>
+        <div class="paginacion-controls">
+          <button 
+            type="button" 
+            class="btn-pagina" 
+            (click)="cambiarPagina('prev')" 
+            [disabled]="paginaActual === 1"
+          >
+            « Anterior
+          </button>
+          <div class="paginas-numeros">
+            <button
+              *ngFor="let pagina of [].constructor(totalPaginas); let i = index"
+              type="button"
+              class="btn-pagina-numero"
+              [class.active]="paginaActual === i + 1"
+              (click)="cambiarPagina(i + 1)"
+            >
+              {{ i + 1 }}
+            </button>
+          </div>
+          <button 
+            type="button" 
+            class="btn-pagina" 
+            (click)="cambiarPagina('next')" 
+            [disabled]="paginaActual === totalPaginas"
+          >
+            Siguiente »
+          </button>
+        </div>
+        <div class="paginacion-info">
+          <p>Página {{ paginaActual }} de {{ totalPaginas }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>

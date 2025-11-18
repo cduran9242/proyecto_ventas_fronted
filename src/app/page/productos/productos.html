@@ -4,18 +4,43 @@
     <p>Administra el catálogo de productos e inventario del sistema</p>
   </div>
 
+  <!-- Mensajes de feedback -->
+  <div *ngIf="mostrandoMensaje" class="feedback-messages">
+    <div *ngIf="mensajeExito" class="alert alert-success">
+      ✅ {{ mensajeExito }}
+    </div>
+    <div *ngIf="mensajeError" class="alert alert-error">
+      ❌ {{ mensajeError }}
+    </div>
+  </div>
+
   <!-- Formulario de nuevo producto -->
   <div class="nuevo-producto-section">
-    <h2>➕ Nuevo Producto</h2>
-    <form class="producto-form" (ngSubmit)="crearProducto()">
+    <h2>{{ editando ? '✏️ Editar Producto' : '➕ Nuevo Producto' }}</h2>
+    <form class="producto-form" (ngSubmit)="editando ? actualizarProducto() : crearProducto()">
       <div class="form-grid">
         <div class="form-group">
-          <label for="nombre">Nombre del Producto:</label>
+          <label for="codigo_producto">Código del Producto: <span class="required">*</span></label>
+          <div class="codigo-input">
+            <input 
+              type="text" 
+              id="codigo_producto" 
+              [(ngModel)]="nuevoProducto.codigo_producto" 
+              name="codigo_producto"
+              placeholder="Ej: BAC-1045-20"
+              required
+            >
+            <button type="button" class="btn-generar" (click)="generarCodigo()" [disabled]="editando">🔄</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="nombre_producto">Nombre del Producto: <span class="required">*</span></label>
           <input 
             type="text" 
-            id="nombre" 
-            [(ngModel)]="nuevoProducto.nombre" 
-            name="nombre"
+            id="nombre_producto" 
+            [(ngModel)]="nuevoProducto.nombre_producto" 
+            name="nombre_producto"
             placeholder="Nombre del producto"
             required
           >
@@ -33,40 +58,12 @@
         </div>
 
         <div class="form-group">
-          <label for="precio">Precio:</label>
-          <input 
-            type="number" 
-            id="precio" 
-            [(ngModel)]="nuevoProducto.precio" 
-            name="precio"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="stock">Stock:</label>
-          <input 
-            type="number" 
-            id="stock" 
-            [(ngModel)]="nuevoProducto.stock" 
-            name="stock"
-            min="0"
-            placeholder="0"
-            required
-          >
-        </div>
-
-        <div class="form-group">
           <label for="categoria">Categoría:</label>
           <select 
             id="categoria" 
             [(ngModel)]="nuevoProducto.categoria" 
             name="categoria"
-            (change)="generarCodigo()"
-            required
+            (change)="!editando && generarCodigo()"
           >
             <option *ngFor="let categoria of categorias" [value]="categoria.valor">
               {{categoria.texto}}
@@ -75,47 +72,39 @@
         </div>
 
         <div class="form-group">
-          <label for="marca">Marca:</label>
+          <label for="unidad_medida">Unidad de Medida:</label>
           <select 
-            id="marca" 
-            [(ngModel)]="nuevoProducto.marca" 
-            name="marca"
-            required
+            id="unidad_medida" 
+            [(ngModel)]="nuevoProducto.unidad_medida" 
+            name="unidad_medida"
           >
-            <option *ngFor="let marca of marcas" [value]="marca.valor">
-              {{marca.texto}}
+            <option *ngFor="let unidad of unidadesMedida" [value]="unidad.valor">
+              {{unidad.texto}}
             </option>
           </select>
         </div>
 
         <div class="form-group">
-          <label for="codigo">Código del Producto:</label>
-          <div class="codigo-input">
-            <input 
-              type="text" 
-              id="codigo" 
-              [(ngModel)]="nuevoProducto.codigo" 
-              name="codigo"
-              placeholder="Código automático"
-              readonly
-            >
-            <button type="button" class="btn-generar" (click)="generarCodigo()">🔄</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="fechaVencimiento">Fecha de Vencimiento:</label>
-          <input 
-            type="date" 
-            id="fechaVencimiento" 
-            [(ngModel)]="nuevoProducto.fechaVencimiento" 
-            name="fechaVencimiento"
+          <label for="estado">Estado:</label>
+          <select 
+            id="estado" 
+            [(ngModel)]="nuevoProducto.estado" 
+            name="estado"
           >
+            <option *ngFor="let estado of estados" [value]="estado.valor">
+              {{estado.texto}}
+            </option>
+          </select>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn-crear">✅ Crear Producto</button>
+        <button type="submit" class="btn-crear">
+          {{ editando ? '💾 Actualizar Producto' : '✅ Crear Producto' }}
+        </button>
+        <button *ngIf="editando" type="button" class="btn-cancelar" (click)="cancelarEdicion()">
+          ❌ Cancelar
+        </button>
         <button type="button" class="btn-limpiar" (click)="limpiarFormulario()">🧹 Limpiar</button>
       </div>
     </form>
@@ -123,57 +112,209 @@
 
   <!-- Lista de productos -->
   <div class="productos-lista-section">
-    <h2>📋 Catálogo de Productos</h2>
-    <div class="tabla-container">
+    <div class="lista-header">
+      <div>
+        <h2>📋 Catálogo de Productos</h2>
+        <p *ngIf="productosFiltrados.length !== productos.length" class="filtros-activos">
+          Mostrando {{ productosFiltrados.length }} de {{ productos.length }} productos
+        </p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn-refrescar" (click)="cargarProductos()" [disabled]="productosCargando">
+          🔄 {{ productosCargando ? 'Cargando...' : 'Actualizar' }}
+        </button>
+        <button type="button" class="btn-exportar" (click)="exportarCSV()" [disabled]="productosFiltrados.length === 0">
+          📤 Exportar CSV
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros y búsqueda -->
+    <div class="filtros-section">
+      <div class="filtros-grid">
+        <div class="filtro-group">
+          <label for="busqueda">🔍 Búsqueda:</label>
+          <input 
+            type="text" 
+            id="busqueda"
+            [(ngModel)]="busquedaTexto"
+            (ngModelChange)="aplicarFiltros()"
+            placeholder="Buscar por código, nombre, descripción..."
+            class="input-busqueda"
+          >
+        </div>
+
+        <div class="filtro-group">
+          <label for="filtroCategoria">📁 Categoría:</label>
+          <select 
+            id="filtroCategoria"
+            [(ngModel)]="filtroCategoria"
+            (ngModelChange)="aplicarFiltros()"
+            class="select-filtro"
+          >
+            <option value="">Todas las categorías</option>
+            <option *ngFor="let cat of categorias.slice(1)" [value]="cat.valor">
+              {{ cat.texto }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <label for="filtroEstado">⚡ Estado:</label>
+          <select 
+            id="filtroEstado"
+            [(ngModel)]="filtroEstado"
+            (ngModelChange)="aplicarFiltros()"
+            class="select-filtro"
+          >
+            <option value="">Todos los estados</option>
+            <option *ngFor="let estado of estados" [value]="estado.valor">
+              {{ estado.texto }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filtro-group">
+          <button type="button" class="btn-limpiar-filtros" (click)="limpiarFiltros()">
+            🧹 Limpiar filtros
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="productosCargando" class="loading-message">
+      <p>⏳ Cargando productos...</p>
+    </div>
+
+    <div *ngIf="!productosCargando && productos.length === 0" class="empty-message">
+      <p>📭 No hay productos registrados. Crea tu primer producto arriba.</p>
+    </div>
+
+    <div *ngIf="!productosCargando && productos.length > 0 && productosFiltrados.length === 0" class="empty-message">
+      <p>🔍 No se encontraron productos con los filtros seleccionados.</p>
+      <button type="button" class="btn-limpiar-filtros" (click)="limpiarFiltros()">Limpiar filtros</button>
+    </div>
+
+    <div *ngIf="!productosCargando && productosFiltrados.length > 0" class="tabla-container">
       <table class="tabla-productos">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Nombre</th>
+            <th (click)="ordenarPor('id')" class="sortable">
+              ID
+              <span *ngIf="ordenColumna === 'id'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th (click)="ordenarPor('codigo')" class="sortable">
+              Código
+              <span *ngIf="ordenColumna === 'codigo'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th (click)="ordenarPor('nombre')" class="sortable">
+              Nombre
+              <span *ngIf="ordenColumna === 'nombre'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
             <th>Descripción</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Categoría</th>
-            <th>Marca</th>
-            <th>Código</th>
-            <th>Estado</th>
+            <th (click)="ordenarPor('categoria')" class="sortable">
+              Categoría
+              <span *ngIf="ordenColumna === 'categoria'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th>Unidad</th>
+            <th (click)="ordenarPor('estado')" class="sortable">
+              Estado
+              <span *ngIf="ordenColumna === 'estado'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
+            <th (click)="ordenarPor('created_at')" class="sortable">
+              Creado
+              <span *ngIf="ordenColumna === 'created_at'" class="sort-icon">
+                {{ ordenDireccion === 'asc' ? '↑' : '↓' }}
+              </span>
+            </th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let producto of productos">
-            <td>{{producto.id}}</td>
-            <td>{{producto.nombre}}</td>
-            <td class="descripcion-cell">{{producto.descripcion}}</td>
-            <td>${{producto.precio | number}}</td>
-            <td>
-              <span class="stock-badge" 
-                    [class.alto]="producto.stock > 20"
-                    [class.medio]="producto.stock > 10 && producto.stock <= 20"
-                    [class.bajo]="producto.stock <= 10">
-                {{producto.stock}}
-              </span>
+          <tr *ngFor="let producto of productosPaginados" (dblclick)="debugProducto(producto)" title="Doble clic para ver detalles en consola">
+            <td>{{producto.id || 'N/A'}}</td>
+            <td><code>{{obtenerCodigo(producto)}}</code></td>
+            <td>{{obtenerNombre(producto)}}</td>
+            <td class="descripcion-cell" title="{{producto.descripcion || 'Sin descripción'}}">
+              {{producto.descripcion || 'Sin descripción'}}
             </td>
             <td>
-              <span class="categoria-badge">{{producto.categoria}}</span>
+              <span class="categoria-badge">{{producto.categoria || 'Sin categoría'}}</span>
             </td>
-            <td>{{producto.marca}}</td>
-            <td><code>{{producto.codigo}}</code></td>
+            <td>{{producto.unidad_medida || 'N/A'}}</td>
             <td>
               <span class="estado-badge" 
                     [class.activo]="producto.estado === 'Activo'"
-                    [class.inactivo]="producto.estado === 'Inactivo'">
-                {{producto.estado}}
+                    [class.inactivo]="producto.estado === 'Inactivo'"
+                    [class.suspendido]="producto.estado === 'Suspendido'"
+                    [class.sininfo]="producto.estado === 'Sin info'">
+                {{producto.estado || 'Sin estado'}}
               </span>
             </td>
-            <td>
-              <button class="btn-ver" (click)="editarProducto(producto)">👁️ Ver</button>
-              <button class="btn-editar" (click)="editarProducto(producto)">✏️ Editar</button>
-              <button class="btn-eliminar" (click)="eliminarProducto(producto)">🗑️ Eliminar</button>
+            <td class="fecha-cell">
+              <small *ngIf="producto.created_at">{{producto.created_at | date:'short'}}</small>
+              <small *ngIf="!producto.created_at">-</small>
+            </td>
+            <td class="acciones-cell">
+              <button class="btn-editar" (click)="editarProducto(producto)" title="Editar">
+                ✏️ Editar
+              </button>
+              <button class="btn-eliminar" (click)="eliminarProducto(producto)" title="Eliminar">
+                🗑️ Eliminar
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
+
+      <!-- Paginación -->
+      <div class="paginacion-container" *ngIf="totalPaginas > 1">
+        <div class="paginacion-info">
+          <p>Mostrando {{ productosPaginados.length }} de {{ productosFiltrados.length }} productos</p>
+        </div>
+        <div class="paginacion-controls">
+          <button 
+            type="button" 
+            class="btn-pagina" 
+            (click)="cambiarPagina('prev')" 
+            [disabled]="paginaActual === 1"
+          >
+            « Anterior
+          </button>
+          <div class="paginas-numeros">
+            <button
+              *ngFor="let pagina of [].constructor(totalPaginas); let i = index"
+              type="button"
+              class="btn-pagina-numero"
+              [class.active]="paginaActual === i + 1"
+              (click)="cambiarPagina(i + 1)"
+            >
+              {{ i + 1 }}
+            </button>
+          </div>
+          <button 
+            type="button" 
+            class="btn-pagina" 
+            (click)="cambiarPagina('next')" 
+            [disabled]="paginaActual === totalPaginas"
+          >
+            Siguiente »
+          </button>
+        </div>
+        <div class="paginacion-info">
+          <p>Página {{ paginaActual }} de {{ totalPaginas }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>

@@ -1,4 +1,9 @@
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: white;
   padding: 12px 24px;
@@ -7,6 +12,7 @@
   justify-content: space-between;
   gap: 16px;
   box-shadow: 0 4px 20px rgba(37, 99, 235, 0.35);
+  height: 60px;
 }
 
 .header-title {

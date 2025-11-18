@@ -12,6 +12,7 @@ import { Subscription } from 'rxjs';
 
 import { ApiService, Producto, VentaDetalle, VentaPedido } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { UbicacionesService, Departamento, Ciudad } from '../../services/ubicaciones.service';
 
 @Component({
   selector: 'app-ventas',
@@ -24,6 +25,7 @@ export class Ventas implements OnInit, OnDestroy {
   private readonly apiService = inject(ApiService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  private readonly ubicacionesService = inject(UbicacionesService);
 
   ventaForm: FormGroup;
   busquedaControl = this.fb.control('', { nonNullable: true });
@@ -45,6 +47,14 @@ export class Ventas implements OnInit, OnDestroy {
   permiteEliminar = false;
 
   monedasDisponibles = ['COP', 'USD', 'EUR'];
+
+  // Paginación
+  paginaActual = 1;
+  registrosPorPagina = 10;
+
+  // Propiedades para ubicaciones
+  departamentos: Departamento[] = [];
+  todasLasCiudades: Ciudad[] = [];
 
   private sessionSub?: Subscription;
   private busquedaSub?: Subscription;
@@ -74,6 +84,8 @@ export class Ventas implements OnInit, OnDestroy {
     this.actualizarEstadoFormulario();
     this.cargarProductos();
     this.cargarVentas();
+    this.cargarDepartamentos();
+    this.cargarTodasLasCiudades();
 
     this.busquedaSub = this.busquedaControl.valueChanges.subscribe(() => {
       this.filtrarVentas();
@@ -147,17 +159,49 @@ export class Ventas implements OnInit, OnDestroy {
   cargarVentas(): void {
     this.cargando = true;
     this.mensajeError = null;
+    console.log('🔄 Cargando ventas...');
     this.apiService
       .getVentas()
       .pipe(finalize(() => (this.cargando = false)))
       .subscribe({
         next: ventas => {
-          this.ventas = ventas ?? [];
+          console.log('✅ Ventas cargadas:', ventas);
+          // Manejar diferentes formatos de respuesta
+          let ventasArray: VentaPedido[] = [];
+          if (Array.isArray(ventas)) {
+            ventasArray = ventas;
+          } else if (ventas && typeof ventas === 'object') {
+            // Si viene en formato { resultado: [...] } o { data: [...] }
+            ventasArray = (ventas as any).resultado || (ventas as any).data || [];
+          }
+          this.ventas = ventasArray;
+          console.log('📊 Total de ventas cargadas:', this.ventas.length);
           this.filtrarVentas();
         },
         error: error => {
-          console.error('Error al cargar ventas:', error);
-          this.mensajeError = 'No se pudieron cargar las ventas. Intenta nuevamente.';
+          console.error('❌ Error al cargar ventas:', error);
+          console.error('📋 Status:', error?.status);
+          console.error('📋 Status Text:', error?.statusText);
+          console.error('📋 Error completo:', error);
+          console.error('📋 Mensaje del backend:', error?.error);
+          
+          // Intentar obtener un mensaje de error más específico
+          let mensajeError = 'No se pudieron cargar las ventas. Intenta nuevamente.';
+          if (error?.error) {
+            if (typeof error.error === 'string') {
+              mensajeError = error.error;
+            } else if (error.error.detail) {
+              mensajeError = error.error.detail;
+            } else if (error.error.message) {
+              mensajeError = error.error.message;
+            } else if (error.error.error) {
+              mensajeError = error.error.error;
+            }
+          } else if (error?.message) {
+            mensajeError = error.message;
+          }
+          
+          this.mensajeError = mensajeError;
           this.ventas = [];
           this.ventasFiltradas = [];
         }
@@ -168,16 +212,149 @@ export class Ventas implements OnInit, OnDestroy {
     const termino = (this.busquedaControl.value ?? '').toLowerCase();
     if (!termino) {
       this.ventasFiltradas = [...this.ventas];
+    } else {
+      this.ventasFiltradas = this.ventas.filter(venta => {
+        return (
+          venta.id?.toString().includes(termino) ||
+          venta.tipo_pedido?.toLowerCase().includes(termino) ||
+          venta.moneda?.toLowerCase().includes(termino) ||
+          venta.detalles?.some(det => det.producto_nombre?.toLowerCase().includes(termino))
+        );
+      });
+    }
+    this.paginaActual = 1; // Resetear a primera página al filtrar
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.ventasFiltradas.length / this.registrosPorPagina);
+  }
+
+  get ventasPaginadas(): VentaPedido[] {
+    const inicio = (this.paginaActual - 1) * this.registrosPorPagina;
+    const fin = inicio + this.registrosPorPagina;
+    return this.ventasFiltradas.slice(inicio, fin);
+  }
+
+  cambiarPagina(direccion: 'prev' | 'next' | number): void {
+    if (typeof direccion === 'number') {
+      this.paginaActual = direccion;
+    } else if (direccion === 'prev' && this.paginaActual > 1) {
+      this.paginaActual--;
+    } else if (direccion === 'next' && this.paginaActual < this.totalPaginas) {
+      this.paginaActual++;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  obtenerNombreDepartamento(departamentoId: number | null | undefined): string {
+    if (departamentoId == null || departamentoId === 0) {
+      return '—';
+    }
+    // Buscar en el array de departamentos
+    const departamento = this.departamentos.find(dept => dept.id === departamentoId);
+    if (departamento?.nombre) {
+      return departamento.nombre;
+    }
+    // Si no se encuentra, intentar cargar de nuevo (por si acaso)
+    if (this.departamentos.length === 0) {
+      this.cargarDepartamentos();
+    }
+    return `Dept. ${departamentoId}`;
+  }
+
+  obtenerNombreCiudad(ciudadId: number | null | undefined): string {
+    if (ciudadId == null || ciudadId === 0) {
+      return '—';
+    }
+    // Buscar en el array de todas las ciudades
+    const ciudad = this.todasLasCiudades.find(c => c.id === ciudadId);
+    if (ciudad?.nombre) {
+      return ciudad.nombre;
+    }
+    // Si no se encuentra, intentar cargar de nuevo (por si acaso)
+    if (this.todasLasCiudades.length === 0) {
+      this.cargarTodasLasCiudades();
+    }
+    return `Ciudad ${ciudadId}`;
+  }
+
+  cargarDepartamentos(): void {
+    this.ubicacionesService.getDepartamentosActivos().subscribe({
+      next: (departamentos: Departamento[]) => {
+        this.departamentos = departamentos || [];
+        console.log('✅ Departamentos cargados para ventas:', this.departamentos.length);
+        if (this.departamentos.length > 0) {
+          console.log('Ejemplo de departamento:', this.departamentos[0]);
+        }
+      },
+      error: (error: any) => {
+        console.error('❌ Error al cargar departamentos en ventas:', error);
+        this.departamentos = [];
+      }
+    });
+  }
+
+  cargarTodasLasCiudades(): void {
+    this.ubicacionesService.getCiudades().subscribe({
+      next: (ciudades: Ciudad[]) => {
+        this.todasLasCiudades = ciudades || [];
+        console.log('✅ Ciudades cargadas para ventas:', this.todasLasCiudades.length);
+        if (this.todasLasCiudades.length > 0) {
+          console.log('Ejemplo de ciudad:', this.todasLasCiudades[0]);
+        }
+      },
+      error: (error: any) => {
+        console.error('❌ Error al cargar todas las ciudades en ventas:', error);
+        this.todasLasCiudades = [];
+      }
+    });
+  }
+
+  exportarCSV(): void {
+    if (this.ventasFiltradas.length === 0) {
       return;
     }
-    this.ventasFiltradas = this.ventas.filter(venta => {
-      return (
-        venta.id?.toString().includes(termino) ||
-        venta.tipo_pedido?.toLowerCase().includes(termino) ||
-        venta.moneda?.toLowerCase().includes(termino) ||
-        venta.detalles?.some(det => det.producto_nombre?.toLowerCase().includes(termino))
-      );
-    });
+
+    const headers = [
+      'ID',
+      'Tipo Pedido',
+      'ID Cliente',
+      'ID Vendedor',
+      'Moneda',
+      'TRM',
+      'O.C. Cliente',
+      'Condición Pago',
+      'Total',
+      'Fecha Creación'
+    ];
+
+    const filas = this.ventasFiltradas.map(venta => [
+      venta.id?.toString() || '',
+      venta.tipo_pedido || '',
+      venta.id_cliente?.toString() || '',
+      venta.id_vendedor?.toString() || '',
+      venta.moneda || '',
+      venta.trm?.toString() || '1',
+      venta.oc_cliente || '',
+      venta.condicion_pago || '',
+      this.calcularTotalPedido(venta).toString(),
+      venta.created_at ? new Date(venta.created_at).toLocaleString() : ''
+    ]);
+
+    const csv = [
+      headers.join(','),
+      ...filas.map(fila => fila.map(campo => `"${campo}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ventas_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   agregarDetalle(detalle?: VentaDetalle): void {
